@@ -56,8 +56,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com'; // Set your SMTP server
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'lontopcx12@gmail.com'; // Your SMTP username
-            $mail->Password   = 'xyltfgzrxvprmwvt'; // Your SMTP password
+            $mail->Username   = 'chatwa'; // Your SMTP username
+            $mail->Password   = 'chatwa'; // Your SMTP password
             $mail->SMTPSecure = 'tls';
             $mail->Port       = 587;
 
