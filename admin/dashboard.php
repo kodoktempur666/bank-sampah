@@ -1,6 +1,6 @@
 <?php
 session_start();
-require '../config/connect.php';
+require 'config/connect.php';
 
 // Cek jika admin sudah login
 if (!isset($_SESSION['user'])) {

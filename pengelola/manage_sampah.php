@@ -3,9 +3,16 @@ session_start();
 require 'config/connect.php';
 
 if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
+    header("Location: page.php?mod=home");
     exit();
 }
+
+if ($_SESSION['user']['role'] !== 'pengelola_sampah') {
+    // If the user does not have the 'warung' role, redirect them to an error or unauthorized page
+    header("Location: page.php?mod=unaut");
+    exit();
+}
+
 
 // Ambil data semua jenis sampah
 $query = "SELECT * FROM jenis_sampah";

@@ -1,184 +1,275 @@
-<?php
-session_start();
-require 'config/connect.php';
-
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit();
-}
-
-$id_rumah_tangga = $_SESSION['user']['id'];
-
-// Saldo terakhir
-$query_saldo = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
-$result_saldo = mysqli_query($conn, $query_saldo);
-$current_saldo = mysqli_fetch_assoc($result_saldo)['saldo'];
-
-// Ambil data sampah yang statusnya menunggu pickup
-$query_sampah = "SELECT s.id, s.berat, s.total_harga, s.status, js.nama_jenis 
-                 FROM sampah s
-                 JOIN jenis_sampah js ON s.id_jenis_sampah = js.id
-                 WHERE s.id_rumah_tangga = '$id_rumah_tangga' AND s.status = 'menunggu_pickup'";
-$result_sampah = mysqli_query($conn, $query_sampah);
-
-// Hitung total harga sampah yang menunggu pickup
-$total_pickup = 0;
-while ($row = mysqli_fetch_assoc($result_sampah)) {
-    $total_pickup += $row['total_harga'];
-}
-
-// Ambil semua data sampah untuk history
-$query_history = "SELECT s.berat, s.total_harga, s.status, s.created_at, js.nama_jenis 
-                  FROM sampah s
-                  JOIN jenis_sampah js ON s.id_jenis_sampah = js.id
-                  WHERE s.id_rumah_tangga = '$id_rumah_tangga'
-                  ORDER BY s.id DESC";
-$result_history = mysqli_query($conn, $query_history);
-
-// Hitung total harga untuk history
-$total_history = 0;
-while ($row = mysqli_fetch_assoc($result_history)) {
-    $total_history += $row['total_harga'];
-}
-
-// Ambil history pembayaran
-$query_riwayat = "SELECT t.*, wm.nama_warung 
-                  FROM transaksi t 
-                  JOIN warung_mitra wm ON t.id_warung_mitra = wm.id 
-                  WHERE t.id_rumah_tangga = '$id_rumah_tangga' 
-                  ORDER BY t.tanggal DESC";
-$result_riwayat = mysqli_query($conn, $query_riwayat);
-
-// Hapus sampah
-if (isset($_POST['action']) && $_POST['action'] == 'hapus') {
-    $id_sampah = $_POST['id_sampah'];
-    $query_delete = "DELETE FROM sampah WHERE id = '$id_sampah'";
-    mysqli_query($conn, $query_delete);
-    header("Location: dashboard.php");
-    exit();
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Rumah Tangga</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f6f9;
+        }
+
+        /* Animasi Fade-In */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Carousel Styling */
+        .carousel {
+            margin-top: 70px;
+        }
+
+        .carousel-item img {
+            width: 100%;
+            height: 70vh;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        /* Section Styling */
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            text-align: center;
+            animation: slideInDown 1s ease;
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .lead {
+            color: #7f8c8d;
+            line-height: 1.8;
+            animation: fadeIn 1.2s ease-in-out;
+        }
+
+        h3 {
+            color: #34495e;
+            font-weight: 700;
+            margin-top: 40px;
+            text-align: center;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        ol,
+        ul {
+            color: #7f8c8d;
+            padding-left: 20px;
+        }
+
+        /* Add a card style */
+        section {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* Button Styling */
+        .btn-success {
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-success:hover {
+            background-color: #28a745;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            transform: scale(1.05);
+        }
+
+/* Menghilangkan background dan border dari tombol prev dan next */
+.carousel-control-prev,
+.carousel-control-next {
+    background-color: transparent !important; /* Menghapus latar belakang sepenuhnya */
+    border: none; /* Menghapus border */
+    width: auto; /* Ukuran tombol diatur sesuai ikon */
+    height: auto; /* Ukuran tombol diatur sesuai ikon */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Ikon sebelumnya dan berikut */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: transparent !important; /* Menghapus latar belakang sepenuhnya */
+    border: none; /* Menghapus border */
+}
+
+/* Menampilkan ikon panah tanpa latar belakang */
+.carousel-control-prev-icon::before,
+.carousel-control-next-icon::before {
+    content: '';
+    border-style: solid;
+    border-width: 2px 2px 0 0;
+    display: inline-block;
+    padding: 10px;
+    border-color: black; /* Ubah warna ikon menjadi hitam legam */
+    transform: rotate(135deg); /* Rotasi untuk ikon prev (kiri) */
+}
+
+.carousel-control-next-icon::before {
+    transform: rotate(-45deg); /* Rotasi untuk ikon next (kanan) */
+}
+
+/* Menghapus hover effect dan background sepenuhnya */
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    background-color: transparent !important; /* Pastikan tetap transparan */
+    opacity: 1; /* Tanpa perubahan opasitas saat hover */
+}
+
+/* Menyesuaikan posisi tombol prev dan next */
+.carousel-control-prev,
+.carousel-control-next {
+    opacity: 1; /* Ikon sepenuhnya terlihat */
+}
+
+
+
+
+        /* Animasi tambahan untuk hover pada gambar carousel */
+        .carousel-item img {
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .carousel-item img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Text Container Animation */
+        .text-center a {
+            animation: bounceIn 1.5s ease;
+        }
+
+        @keyframes bounceIn {
+
+            0%,
+            20%,
+            40%,
+            60%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center">Dashboard Rumah Tangga</h1>
-        <h3>Saldo: Rp. <?= number_format($current_saldo, 2, ',', '.') ?></h3>
-        <a href="pembayaran.php" class="btn btn-primary mt-4">Bayar</a>
-        
-        <!-- Sampah Siap Pick-Up -->
-        <h4 class="mt-4">Sampah Siap Pick-Up</h4>
-        <?php if (mysqli_num_rows($result_sampah) > 0): ?>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Jenis Sampah</th>
-                        <th>Berat (kg)</th>
-                        <th>Total Harga (Rp)</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    mysqli_data_seek($result_sampah, 0); // Reset pointer to loop again for display
-                    while ($sampah = mysqli_fetch_assoc($result_sampah)): ?>
-                    <tr>
-                        <td><?= $sampah['nama_jenis'] ?></td>
-                        <td><?= number_format($sampah['berat'], 2, ',', '.') ?></td>
-                        <td><?= number_format($sampah['total_harga'], 2, ',', '.') ?></td>
-                        <td><?= $sampah['status'] ?></td>
-                        <td>
-                            <form action="dashboard.php" method="POST" class="d-inline">
-                                <input type="hidden" name="id_sampah" value="<?= $sampah['id'] ?>">
-                                <button type="submit" name="action" value="hapus" class="btn btn-danger mt-2">Hapus</button>
-                            </form>
 
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                    <tr>
-                        <td colspan="2" class="text-right"><strong>Total Harga (Rp):</strong></td>
-                        <td><strong><?= number_format($total_pickup, 2, ',', '.') ?></strong></td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p>Tidak ada sampah yang siap untuk di-pickup.</p>
-        <?php endif; ?>
+    <!-- Include Header -->
+    <?php include 'assets/components/header.php'; ?>
 
-        <a href="page.php?mod=jual" class="btn btn-primary mt-4">Jual Sampah</a>
-
-        <!-- History Transaksi Sampah -->
-        <h4 class="mt-5">History Transaksi Sampah</h4>
-        <?php if (mysqli_num_rows($result_history) > 0): ?>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Jenis Sampah</th>
-                        <th>Berat (kg)</th>
-                        <th>Total Harga (Rp)</th>
-                        <th>Status</th>
-                        <th>Tanggal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    mysqli_data_seek($result_history, 0); // Reset pointer to loop again for display
-                    while ($history = mysqli_fetch_assoc($result_history)): ?>
-                    <tr>
-                        <td><?= $history['nama_jenis'] ?></td>
-                        <td><?= number_format($history['berat'], 2, ',', '.') ?></td>
-                        <td><?= number_format($history['total_harga'], 2, ',', '.') ?></td>
-                        <td><?= $history['status'] ?></td>
-                        <td><?= $history['created_at'] ?></td>
-                    </tr>
-                    <?php endwhile; ?>
-                    <tr>
-                        <td colspan="2" class="text-right"><strong>Total Penjualan (Rp):</strong></td>
-                        <td><strong><?= number_format($total_history, 2, ',', '.') ?></strong></td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tbody>
-            </table>           
-        <?php else: ?>
-            <p>Tidak ada history transaksi.</p>
-        <?php endif; ?>
-
-        <!-- Riwayat Pembayaran -->
-        <div class="container mt-5">
-            <h2>Riwayat Pembayaran</h2>
-            <?php if (mysqli_num_rows($result_riwayat) > 0): ?>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Nama Warung</th>
-                            <th>Jumlah Pembayaran (Rp)</th>
-                            <th>Tanggal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while($riwayat = mysqli_fetch_assoc($result_riwayat)): ?>
-                        <tr>
-                            <td><?= $riwayat['nama_warung'] ?></td>
-                            <td><?= number_format($riwayat['jumlah_pembayaran'], 2, ',', '.') ?></td>
-                            <td><?= $riwayat['tanggal'] ?></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p>Tidak ada riwayat pembayaran.</p>
-            <?php endif; ?>
+    <!-- Carousel Start -->
+    <div id="carouselExampleControls" class="carousel slide container" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active fade-in">
+                <img src="assets/img/slider1.jpg" class="d-block w-100" alt="Slider Image 1">
+            </div>
+            <div class="carousel-item fade-in">
+                <img src="assets/img/slider2.jpg" class="d-block w-100" alt="Slider Image 2">
+            </div>
+            <div class="carousel-item fade-in">
+                <img src="assets/img/slider3.jpg" class="d-block w-100" alt="Slider Image 3">
+            </div>
         </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls"
+            data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls"
+            data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+
+        </button>
     </div>
+    <!-- Carousel End -->
+
+    <!-- Content Section Start -->
+    <section class="container my-5 fade-in">
+        <h2 class="section-title">Apa itu Bank Sampah?</h2>
+        <p class="lead">
+            Bank Sampah adalah sebuah program pengelolaan sampah yang bertujuan untuk mendaur ulang sampah dengan
+            memanfaatkan barang-barang bekas yang masih bernilai ekonomis.
+        </p>
+        <p class="lead">
+            Program ini mendorong masyarakat untuk peduli terhadap lingkungan dan memanfaatkan sampah secara bijak demi
+            menjaga kebersihan dan kelestarian lingkungan.
+        </p>
+
+        <h3>Cara Kerja Bank Sampah</h3>
+        <ol class="fade-in">
+            <li>Masyarakat mengumpulkan sampah yang bisa didaur ulang seperti plastik, kertas, dan logam.</li>
+            <li>Sampah yang sudah dipilah disetor ke Bank Sampah terdekat.</li>
+            <li>Sampah tersebut ditimbang dan dinilai berdasarkan jenis dan beratnya.</li>
+            <li>Masyarakat mendapatkan buku tabungan atau aplikasi untuk mencatat saldo dari sampah yang dikumpulkan.
+            </li>
+            <li>Saldo tersebut dapat ditukar dengan uang, sembako, atau keperluan lainnya.</li>
+        </ol>
+
+        <h3>Manfaat Bank Sampah</h3>
+        <ul class="fade-in">
+            <li><strong>Mengurangi Volume Sampah:</strong> Membantu mengurangi sampah di tempat pembuangan akhir (TPA).
+            </li>
+            <li><strong>Meningkatkan Pendapatan:</strong> Sampah yang diolah dapat ditukar dengan uang atau barang
+                kebutuhan rumah tangga.</li>
+            <li><strong>Menciptakan Lapangan Kerja:</strong> Peluang kerja baru dalam pengelolaan sampah.</li>
+            <li><strong>Mendorong Kesadaran Lingkungan:</strong> Memperkuat kepedulian masyarakat terhadap lingkungan.
+            </li>
+        </ul>
+
+        <h3>Kisah Sukses: "Mengubah Sampah Menjadi Emas"</h3>
+        <p>
+            Pak Suryadi dari Jakarta Barat berhasil merasakan manfaat dari Bank Sampah. Dengan memulai dari usaha kecil,
+            kini ia telah memiliki usaha daur ulang sendiri yang mendukung pendidikan anak-anaknya.
+        </p>
+
+        <div class="text-center mt-4">
+            <a href="?mod=jual" class="btn btn-success btn-lg bounceIn">Mulai Menjual Sampah</a>
+        </div>
+    </section>
+    <!-- Content Section End -->
+
+    <!-- Include Footer -->
+    <?php include 'assets/components/footer.php'; ?>
+
+    <!-- Scripts for Bootstrap and Font Awesome -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
+
 </html>

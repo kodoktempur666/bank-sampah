@@ -3,7 +3,13 @@ session_start();
 require 'config/connect.php';
 
 if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
+    header("Location: page.php?mod=home");
+    exit();
+}
+
+if ($_SESSION['user']['role'] !== 'pengelola_sampah') {
+    // If the user does not have the 'warung' role, redirect them to an error or unauthorized page
+    header("Location: page.php?mod=unaut");
     exit();
 }
 
@@ -93,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Pengelola Sampah</h1>
+        <h1 class="text-center">Pengelola Sampah Desa Salem</h1>
 
 
         <a href="page.php?mod=data-penarikan" class="btn btn-warning mt-3">Data Penarikan</a>
