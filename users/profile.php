@@ -80,7 +80,7 @@ if (!$user) {
                             </tr>
                             <tr>
                                 <th>Nomor Telepon</th>
-                                <td><?php echo $user['no_telepon']; ?></td>
+                                <td><?php echo $user['kontak']; ?></td>
                             </tr>
                             <tr>
                                 <th>Alamat</th>
