@@ -1,0 +1,137 @@
+/* Main styling for the dashboard */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.konten1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Pastikan konten selalu memenuhi layar */
+    padding-top: 10vh;
+    padding-bottom: 5vh; /* Tambahkan jarak bawah */
+}
+
+.konten1 .container {
+    max-width: 80%;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.konten1 .container:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+h2 {
+    font-size: 2rem;
+    color: #2c3e50;
+    text-align: center; /* Pusatkan judul */
+}
+
+p {
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+    text-align: justify; /* Sesuaikan teks agar lebih rapi */
+}
+
+.lead {
+    font-size: 14px;
+    color: #7f8c8d;
+    text-align: center; /* Pusatkan teks lead */
+}
+
+.image-container {
+    overflow: hidden;
+    width: 100%;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.image-container img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    transform: translateX(-100%);
+    animation: slideIn 1.5s forwards;
+}
+
+/* Animasi */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* Styling untuk tombol */
+button {
+    background-color: #2980b9;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+button:hover {
+    background-color: #3498db;
+}
+
+/* Responsif untuk layar kecil (Tablet, Mobile) */
+@media (max-width: 768px) {
+    .konten1 {
+        padding-top: 5vh;
+        padding-bottom: 5vh;
+        height: auto;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .image-container img {
+        width: 100%;
+    }
+
+    .row {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+
+    .konten1 {
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    .image-container {
+        max-width: 100%;
+    }
+
+    button {
+        width: 100%; /* Lebar penuh tombol pada perangkat kecil */
+    }
+}
