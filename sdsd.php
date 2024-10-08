@@ -14,13 +14,8 @@ require 'config/connect.php';
 //     exit();
 // }
 
+
 $id_rumah_tangga = $_SESSION['user']['id'];
-
-// Menampilkan nama rumah tangga
-$query_nama = "SELECT nama FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
-$result_nama = mysqli_query($conn, $query_nama);
-$nama = mysqli_fetch_assoc($result_nama)['nama'];
-
 
 // Saldo terakhir
 $query_saldo = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
@@ -28,11 +23,14 @@ $result_saldo = mysqli_query($conn, $query_saldo);
 $current_saldo = mysqli_fetch_assoc($result_saldo)['saldo'];
 
 // Ambil data sampah yang statusnya menunggu pickup
-$query_sampah = "SELECT s.id, s.berat, s.total_harga, s.status, js.nama_jenis, s.confirmed_by_rumah_tangga, s.confirmed_by_pengelola 
+$query_sampah = "SELECT s.id, s.berat, s.total_harga, s.status, js.nama_jenis 
                  FROM sampah s
                  JOIN jenis_sampah js ON s.id_jenis_sampah = js.id
                  WHERE s.id_rumah_tangga = '$id_rumah_tangga' AND s.status = 'siap hitung'";
 $result_sampah = mysqli_query($conn, $query_sampah);
+
+
+
 
 // Hitung total harga sampah yang menunggu pickup
 $total_pickup = 0;
@@ -71,30 +69,57 @@ if (isset($_POST['action']) && $_POST['action'] == 'hapus') {
     exit();
 }
 
+// if ($_SERVER["REQUEST_METHOD"] == "POST") {
+//     $id_sampah = $_POST['id_sampah'];
+//     $status = $_POST['status'];
 
+//     // Ambil data sampah berdasarkan ID
+//     $query_sampah_detail = "SELECT * FROM sampah WHERE id = '$id_sampah'";
+//     $result_sampah_detail = mysqli_query($conn, $query_sampah_detail);
+//     $sampah = mysqli_fetch_assoc($result_sampah_detail);
 
-// Proses konfirmasi transaksi
+//     // Update status sampah hanya jika confirmed_by_rumah_tangga dan confirmed_by_pengelola adalah 1
+//     if ($sampah['confirmed_by_rumah_tangga'] == 1 && $sampah['confirmed_by_pengelola'] == 1) {
+//         // Update status sampah
+//         $query_update_status = "UPDATE sampah SET status = '$status' WHERE id = '$id_sampah'";
+//         mysqli_query($conn, $query_update_status);
+
+//         // Jika status diubah menjadi "selesai", tambahkan saldo rumah tangga
+//         if ($status == 'selesai') {
+//             $id_rumah_tangga = $sampah['id_rumah_tangga'];
+//             $total_harga = $sampah['total_harga'];
+
+//             // Update saldo rumah tangga
+//             $query_update_saldo = "UPDATE rumah_tangga SET saldo = saldo + $total_harga WHERE id = '$id_rumah_tangga'";
+//             mysqli_query($conn, $query_update_saldo);
+//         }
+//     }
+
+//     header("Location: page.php?mod=riwayat");
+//     exit();
+// }
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id_sampah = $_POST['id_sampah'];
-    $status = $_POST['status'];
+    $confirmed_by_rumah_tangga = $_POST['confirmed_by_rumah_tangga'];
+    $confirmed_by_pengelola = $_POST['confirmed_by_pengelola'];
 
-    // Ambil data sampah berdasarkan ID
+    // Ambil data sampah berdasarkan ID untuk menghitung saldo
     $query_sampah_detail = "SELECT * FROM sampah WHERE id = '$id_sampah'";
     $result_sampah_detail = mysqli_query($conn, $query_sampah_detail);
     $sampah = mysqli_fetch_assoc($result_sampah_detail);
 
-    // Update status konfirmasi rumah tangga
+    // Update status sampah
     $query_update_rumah_tangga = "UPDATE sampah SET confirmed_by_rumah_tangga = 'diterima' WHERE id = '$id_sampah'";
     mysqli_query($conn, $query_update_rumah_tangga);
 
-    // Cek jika sudah terkonfirmasi oleh kedua belah pihak
-    if ($sampah['confirmed_by_rumah_tangga'] === 'diterima' && $sampah['confirmed_by_pengelola'] === 'diterima') {
+    if ($sampah['confirmed_by_rumah_tangga'] == 'diterima' && $sampah['confirmed_by_pengelola'] == 'diterima') {
         // Update status sampah
         $query_update_status = "UPDATE sampah SET status = '$status' WHERE id = '$id_sampah'";
         mysqli_query($conn, $query_update_status);
 
         // Jika status diubah menjadi "selesai", tambahkan saldo rumah tangga
-        if ($status === 'selesai') {
+        if ($status == 'selesai') {
             $id_rumah_tangga = $sampah['id_rumah_tangga'];
             $total_harga = $sampah['total_harga'];
 
@@ -107,7 +132,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     header("Location: page.php?mod=riwayat");
     exit();
 }
+
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -179,7 +207,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php include 'assets/components/header.php'; ?>
 
     <div class="container">
-        <h1 class="text-center">Dashboard <?=$nama?></h1>
+        <h1 class="text-center">Dashboard Rumah Tangga</h1>
         <div class="card p-4">
             <h3>Saldo: Rp. <?= number_format($current_saldo, 2, ',', '.') ?></h3>
             <a href="?mod=pembayaran" class="btn btn-primary mt-4">Bayar</a>
@@ -209,24 +237,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <td><?= number_format($sampah['berat'], 2, ',', '.') ?></td>
                                 <td><?= number_format($sampah['total_harga'], 2, ',', '.') ?></td>
                                 <td><?= $sampah['status'] ?></td>
-                                <td><?= $sampah['confirmed_by_rumah_tangga'] ?? 'Belum Dikonfirmasi' ?></td>
+                                <td><?= $sampah['confirmed_by_rumah_tangga'] ?></td>
                                 <td>
                                     <!-- Button to trigger modal for delete confirmation -->
                                     <button class="btn btn-danger btn-sm" onclick="confirmDelete(<?= $sampah['id'] ?>)">Hapus</button>
                                     <form method="POST" class="d-inline">
                                         <input type="hidden" name="id_sampah" value="<?= $sampah['id'] ?>">
-                                        <input type="hidden" name="status" value="selesai">
-                                        <button value="selesai" name="status" class="btn btn-success mt-2" <?= ($sampah['confirmed_by_pengelola'] == 'belum diterima') ? 'disabled' : '' ?>>Terima Pembayaran</button>
+                                        <button value="selesai" name="status" class="btn btn-success mt-2" <?= ($sampah['confirmed_by_pengelola'] == 'belum diterima') ? 'disabled' : '' ?>>Selesai</button>
                                     </form>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
+                        <tr>
+                            <td colspan="2" class="text-end"><strong>Total Harga (Rp):</strong></td>
+                            <td><strong><?= number_format($total_pickup, 2, ',', '.') ?></strong></td>
+                            <td colspan="2"></td>
+                        </tr>
                     </tbody>
                 </table>
             <?php else: ?>
                 <div class="no-data">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>Tidak ada data order sampah </p>
+                    <i class="fas fa-trash-alt"></i>
+                    <p>Tidak ada sampah yang siap untuk di-pickup.</p>
                 </div>
             <?php endif; ?>
             <a href="page.php?mod=jual" class="btn btn-primary mt-4">Jual Sampah</a>
@@ -273,7 +305,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
         </div>
 
-
         <!-- Riwayat Pembayaran -->
         <div class="card p-4">
             <h4>Riwayat Pembayaran</h4>
@@ -283,8 +314,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <tr>
                             <th>Nama Warung</th>
                             <th>Jumlah Pembayaran (Rp)</th>
-                            <th>Status</th>
-                            <th>Keterangan</th>
                             <th>Tanggal</th>
                         </tr>
                     </thead>
@@ -293,8 +322,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <tr>
                                 <td><?= $riwayat['nama_warung'] ?></td>
                                 <td><?= number_format($riwayat['jumlah_pembayaran'], 2, ',', '.') ?></td>
-                                <td><?= $riwayat['status'] ?></td>
-                                <td><?= $riwayat['keterangan'] ?></td>
                                 <td><?= $riwayat['tanggal'] ?></td>
                             </tr>
                         <?php endwhile; ?>
@@ -309,38 +336,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-    <!-- Modal Delete Confirmation -->
-    <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="modalDeleteLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <!-- Modal Konfirmasi Penghapusan -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalDeleteLabel">Konfirmasi Hapus</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title" id="confirmModalLabel">Konfirmasi Penghapusan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Apakah Anda yakin ingin menghapus sampah ini?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <form id="formDelete" method="POST">
-                        <input type="hidden" name="id_sampah" id="deleteId">
-                        <input type="hidden" name="action" value="hapus">
-                        <button type="submit" class="btn btn-danger">Hapus</button>
+                    <form id="deleteForm" action="page.php?mod=riwayat" method="POST">
+                        <input type="hidden" name="id_sampah" id="id_sampah">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" name="action" value="hapus" class="btn btn-danger">Hapus</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script for delete confirmation modal -->
     <script>
+        // Function to trigger modal and set the id of sampah to be deleted
         function confirmDelete(id) {
-            $('#deleteId').val(id);
-            $('#modalDelete').modal('show');
+            document.getElementById('id_sampah').value = id;  // Set the id in the hidden input
+            var myModal = new bootstrap.Modal(document.getElementById('confirmModal'));  // Initialize Bootstrap Modal
+            myModal.show();  // Show the modal
         }
     </script>
 </body>

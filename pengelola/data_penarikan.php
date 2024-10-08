@@ -2,25 +2,20 @@
 session_start();
 require 'config/connect.php';
 
-if (!isset($_SESSION['user'])) {
-    header("Location: page.php?mod=home");
-    exit();
-}
+// Cek apakah pengelola sudah login
+// if (!isset($_SESSION['user'])) {
+//     header("Location: page.php?mod=home");
+//     exit();
+// }
 
-if ($_SESSION['user']['role'] == 'rumah_tangga') {
-    header("Location: page.php?mod=unaut");
-    exit();
-}
+// // Periksa apakah pengguna adalah pengelola
+// if ($_SESSION['user']['role'] !== 'pengelola') {
+//     // Jika bukan pengelola, redirect ke halaman unauthorized
+//     header("Location: page.php?mod=unaut2");
+//     exit();
+// }
 
-// Daftar peran yang tidak diizinkan
-$not_allowed_roles = ['admin', 'warung_mitra'];
-if (in_array($_SESSION['user']['role'], $not_allowed_roles)) {
-    // Jika pengguna memiliki salah satu dari peran yang tidak diizinkan, redirect mereka
-    header("Location: page.php?mod=unaut2");
-    exit();
-}
-
-$id_pengelola = $_SESSION['user']['id'];
+// $id_pengelola = $_SESSION['user']['id'];
 
 
 
@@ -50,19 +45,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $query_update_warung = "UPDATE warung_mitra SET saldo = saldo - $jumlah_penarikan WHERE id = '{$penarikan['id_warung_mitra']}'";
         mysqli_query($conn, $query_update_warung);
 
-        // Tambahkan saldo pengelola
-        // $query_update_pengelola = "UPDATE pengelola_sampah SET saldo = saldo + $jumlah_penarikan WHERE id = '$id_pengelola'";
-        // mysqli_query($conn, $query_update_pengelola);
 
         // Ubah status penarikan menjadi selesai
         $query_update_penarikan = "UPDATE transaksi_pencairan SET status = 'selesai' WHERE id = '$id_penarikan'";
         mysqli_query($conn, $query_update_penarikan);
 
         // Salin data penarikan ke tabel riwayat_penarikan
-        $query_insert_riwayat = "INSERT INTO riwayat_penarikan (id_warung_mitra, jumlah, tipe_penarikan, status, no_rekening, bank)
-                                 SELECT id_warung_mitra, jumlah, tipe_penarikan, 'selesai', no_rekening, bank
-                                 FROM transaksi_pencairan
-                                 WHERE id = '$id_penarikan'";
+        $query_insert_riwayat = "INSERT INTO riwayat_penarikan (id_warung_mitra, jumlah, status)
+                                SELECT id_warung_mitra, jumlah, 'selesai'
+                                FROM transaksi_pencairan
+                                WHERE id = '$id_penarikan'";
         mysqli_query($conn, $query_insert_riwayat);
 
         // Hapus data dari tabel transaksi_pencairan
@@ -104,9 +96,6 @@ $result_riwayat = mysqli_query($conn, $query_riwayat);
                     <tr>
                         <th>Warung</th>
                         <th>Jumlah (Rp)</th>
-                        <th>Tipe Penarikan</th>
-                        <th>No Rekening</th>
-                        <th>Bank</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -115,9 +104,7 @@ $result_riwayat = mysqli_query($conn, $query_riwayat);
                     <tr>
                         <td><?= $penarikan['nama_warung'] ?></td>
                         <td><?= number_format($penarikan['jumlah'], 2, ',', '.') ?></td>
-                        <td><?= $penarikan['tipe_penarikan'] ?></td>
-                        <td><?= $penarikan['no_rekening'] ?></td>
-                        <td><?= $penarikan['bank'] ?></td>
+
                         <td>
                             <form method="POST" class="d-inline">
                                 <input type="hidden" name="id_penarikan" value="<?= $penarikan['id'] ?>">
@@ -139,9 +126,6 @@ $result_riwayat = mysqli_query($conn, $query_riwayat);
                     <tr>
                         <th>Warung</th>
                         <th>Jumlah (Rp)</th>
-                        <th>Tipe Penarikan</th>
-                        <th>No Rekening</th>
-                        <th>Bank</th>
                         <th>Status</th>
                         <th>Tanggal</th>
                     </tr>
@@ -151,9 +135,6 @@ $result_riwayat = mysqli_query($conn, $query_riwayat);
                     <tr>
                         <td><?= $riwayat['nama_warung'] ?></td>
                         <td><?= number_format($riwayat['jumlah'], 2, ',', '.') ?></td>
-                        <td><?= $riwayat['tipe_penarikan'] ?></td>
-                        <td><?= $riwayat['no_rekening'] ?></td>
-                        <td><?= $riwayat['bank'] ?></td>
                         <td><?= $riwayat['status'] ?></td>
                         <td><?= $riwayat['tanggal'] ?></td>
                     </tr>

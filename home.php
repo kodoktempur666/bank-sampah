@@ -33,9 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (mysqli_num_rows($result3) == 1) {
         $_SESSION['user'] = mysqli_fetch_assoc($result3);
         header("Location: page.php?mod=warung");
-    } elseif (mysqli_num_rows($result4) == 1) {
-        $_SESSION['user'] = mysqli_fetch_assoc($result4);
-        header("Location: page.php?mod=admin");
     } else {
         $message[] = 'Username atau password salah';
     }

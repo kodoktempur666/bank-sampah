@@ -5,20 +5,34 @@ $mod = isset($_GET['mod']) ? $_GET['mod'] : '';
 if($_GET['mod']=='home') {
     include "home.php";
     
-}elseif($_GET["mod"]== "register") {
+}
+
+elseif($_GET["mod"]== "register") {
     include "register/register.php";
 
-}elseif($_GET["mod"]== "reg-rumah") {
+}
+
+elseif($_GET["mod"]== "reg-rumah") {
     include "register/register_rumah.php";
 
-}elseif($_GET["mod"]== "reg-warung") {
+}
+
+elseif($_GET["mod"]== "reg-warung") {
     include "register/register_warung.php";
 
-}elseif($_GET["mod"]== "reg-pengelola") {
+}
+
+elseif($_GET["mod"]== "reg-pengelola") {
     include "register/register_pengelola.php";
 
-}elseif($_GET["mod"]== "verify") {
-    include "register/verify.php";
+}
+
+elseif($_GET["mod"]== "verify") {
+    include "pengelola/verify_user.php";
+}
+
+elseif($_GET["mod"]== "verify-war") {
+    include "pengelola/verify_warung.php";
 }
 
 elseif($_GET["mod"]== "pengelola") {
@@ -35,6 +49,14 @@ elseif($_GET["mod"]== "edit-sampah") {
 
 elseif($_GET["mod"]== "edit") {
     include "pengelola/edit.php";
+}
+
+elseif($_GET["mod"]== "edit-user") {
+    include "pengelola/edit_user.php";
+}
+
+elseif($_GET["mod"]== "edit-war") {
+    include "pengelola/edit_warung.php";
 }
 
 elseif($_GET["mod"]== "warung") {
@@ -56,7 +78,6 @@ elseif($_GET["mod"]== "admin-sampah") {
 elseif($_GET["mod"]== "admin-user") {
     include "admin/manage_user.php";
 }
-
 
 elseif($_GET["mod"]== "jual") {
     include "users/sell_sampah.php";

@@ -2,23 +2,26 @@
 session_start();
 require 'config/connect.php';
 
-if (!isset($_SESSION['user'])) {
-    header("Location: page.php?mod=home");
-    exit();
-}
+// if (!isset($_SESSION['user'])) {
+//     header("Location: page.php?mod=home");
+//     exit();
+// }
 
-$not_allowed_roles = ['admin', 'warung_mitra', 'pengelola'];
-if (in_array($_SESSION['user']['role'], $not_allowed_roles)) {
-    // Jika pengguna memiliki salah satu dari peran yang tidak diizinkan, redirect mereka
-    header("Location: page.php?mod=unaut2");
-    exit();
-}
+// // Periksa apakah pengguna adalah pengelola
+// if ($_SESSION['user']['role'] !== 'rumah_tangga') {
+//     // Jika bukan pengelola, redirect ke halaman unauthorized
+//     header("Location: page.php?mod=unaut2");
+//     exit();
+// }
 
 $id_rumah_tangga = $_SESSION['user']['id'];
 
-// Proses pembayaran jika form disubmit
+
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jumlah_pembayaran = floatval($_POST['jumlah_pembayaran']);
+    $id_warung_mitra = $_POST['id_warung_mitra'];
+    $keterangan = mysqli_real_escape_string($conn, $_POST['keterangan']); // Mengambil input keterangan
     
     // Ambil saldo saat ini
     $query_saldo = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
@@ -27,27 +30,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // Periksa apakah saldo mencukupi
     if ($jumlah_pembayaran <= $current_saldo) {
-        // Kurangi saldo rumah tangga
-        $query_update_saldo = "UPDATE rumah_tangga SET saldo = saldo - '$jumlah_pembayaran' WHERE id = '$id_rumah_tangga'";
-        mysqli_query($conn, $query_update_saldo);
+
         
-        // Tambah saldo ke warung mitra
-        $id_warung_mitra = $_POST['id_warung_mitra'];
-        $query_update_warung = "UPDATE warung_mitra SET saldo = saldo + '$jumlah_pembayaran' WHERE id = '$id_warung_mitra'";
-        mysqli_query($conn, $query_update_warung);
-        
-        // Catat transaksi
-        $query_transaksi = "INSERT INTO transaksi (id_rumah_tangga, id_warung_mitra, jumlah_pembayaran, tanggal) 
-                            VALUES ('$id_rumah_tangga', '$id_warung_mitra', '$jumlah_pembayaran', NOW())";
+        // Catat transaksi sebagai 'pending'
+        $query_transaksi = "INSERT INTO transaksi (id_rumah_tangga, id_warung_mitra, jumlah_pembayaran, keterangan, status, tanggal) 
+                            VALUES ('$id_rumah_tangga', '$id_warung_mitra', '$jumlah_pembayaran', '$keterangan', 'pending', NOW())";
         mysqli_query($conn, $query_transaksi);
         
-        // Redirect ke dashboard atau halaman sukses
+        // Redirect ke halaman riwayat atau sukses
         header("Location: page.php?mod=riwayat");
         exit();
     } else {
         echo "Saldo tidak mencukupi.";
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -140,7 +137,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <label for="jumlah_pembayaran">Jumlah Pembayaran (Rp)</label>
                                 <input type="number" name="jumlah_pembayaran" step="0.01" class="form-control" required>
                             </div>
-
+                            <!-- Form Pembayaran Rumah Tangga -->
+                            <div class="form-group">
+                                <label for="keterangan">Keterangan Pembayaran</label>
+                                <textarea name="keterangan" class="form-control" required></textarea>
+                            </div>
                             <!-- Submit Button -->
                             <button type="button" class="btn btn-primary btn-block" onclick="confirmPayment()">Bayar</button>
 

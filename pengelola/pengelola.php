@@ -2,25 +2,20 @@
 session_start();
 require 'config/connect.php';
 
-if (!isset($_SESSION['user'])) {
-    header("Location: page.php?mod=home");
-    exit();
-}
+// Cek apakah pengelola sudah login
+// if (!isset($_SESSION['user'])) {
+//     header("Location: page.php?mod=home");
+//     exit();
+// }
 
-if ($_SESSION['user']['role'] == 'rumah_tangga') {
-    header("Location: page.php?mod=unaut");
-    exit();
-}
+// // Periksa apakah pengguna adalah pengelola
+// if ($_SESSION['user']['role'] !== 'pengelola') {
+//     // Jika bukan pengelola, redirect ke halaman unauthorized
+//     header("Location: page.php?mod=unaut2");
+//     exit();
+// }
 
-// Daftar peran yang tidak diizinkan
-$not_allowed_roles = ['admin', 'warung_mitra'];
-if (in_array($_SESSION['user']['role'], $not_allowed_roles)) {
-    // Jika pengguna memiliki salah satu dari peran yang tidak diizinkan, redirect mereka
-    header("Location: page.php?mod=unaut2");
-    exit();
-}
-
-$id_pengelola = $_SESSION['user']['id'];
+// $id_pengelola = $_SESSION['user']['id'];
 
 
 
@@ -29,7 +24,7 @@ $query_sampah = "SELECT s.*, r.nama, r.alamat, r.kontak, js.nama_jenis AS jenis_
                  FROM sampah s 
                  JOIN rumah_tangga r ON s.id_rumah_tangga = r.id 
                  JOIN jenis_sampah js ON s.id_jenis_sampah = js.id
-                 WHERE s.status = 'menunggu_pickup'";
+                 WHERE s.status = 'siap hitung'";
 $result_sampah = mysqli_query($conn, $query_sampah);
 
 // Ambil semua history sampah
@@ -68,9 +63,12 @@ while ($row = mysqli_fetch_assoc($result_total_sampah_selesai)) {
     $totals_by_household1[$row['nama']] = $row['total_harga'];
 }
 
+
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id_sampah = $_POST['id_sampah'];
-    $status = $_POST['status'];
+    $confirmed_by_pengelola = $_POST['confirmed_by_pengelola'];
 
     // Ambil data sampah berdasarkan ID untuk menghitung saldo
     $query_sampah_detail = "SELECT * FROM sampah WHERE id = '$id_sampah'";
@@ -78,22 +76,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sampah = mysqli_fetch_assoc($result_sampah_detail);
 
     // Update status sampah
-    $query_update_status = "UPDATE sampah SET status = '$status' WHERE id = '$id_sampah'";
-    mysqli_query($conn, $query_update_status);
+    $query_update_pengelola = "UPDATE sampah SET confirmed_by_pengelola = 'diterima' WHERE id = '$id_sampah'";
+    mysqli_query($conn, $query_update_pengelola);
 
     // Jika status diubah menjadi "selesai", tambahkan saldo rumah tangga
-    if ($status == 'selesai') {
-        $id_rumah_tangga = $sampah['id_rumah_tangga'];
-        $total_harga = $sampah['total_harga'];
+    // if ($status == 'selesai') {
+    //     $id_rumah_tangga = $sampah['id_rumah_tangga'];
+    //     $total_harga = $sampah['total_harga'];
 
-        // Update saldo rumah tangga
-        $query_update_saldo = "UPDATE rumah_tangga SET saldo = saldo + $total_harga WHERE id = '$id_rumah_tangga'";
-        mysqli_query($conn, $query_update_saldo);
-    }
+    //     // Update saldo rumah tangga
+    //     $query_update_saldo = "UPDATE rumah_tangga SET saldo = saldo + $total_harga WHERE id = '$id_rumah_tangga'";
+    //     mysqli_query($conn, $query_update_saldo);
+    // }
 
     header("Location: page.php?mod=pengelola");
     exit();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -111,6 +110,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <a href="page.php?mod=data-penarikan" class="btn btn-warning mt-3">Data Penarikan</a>
         <a href="page.php?mod=edit-sampah" class="btn btn-warning mt-3">Edit Harga Sampah</a>
+        <a href="page.php?mod=verify" class="btn btn-warning mt-3">Daftar user</a>
+        <a href="page.php?mod=verify-war" class="btn btn-warning mt-3">Daftar Mitra</a>
         <!-- Bagian Sampah Siap Pickup -->
         <h4 class="mt-4">Sampah Siap Pick-Up</h4>
         <?php if (mysqli_num_rows($result_sampah) > 0): ?>
@@ -139,6 +140,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <th>Berat (kg)</th>
                                 <th>Total Harga (Rp)</th>
                                 <th>Status</th>
+                                <th>Pembayaran</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -149,10 +151,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <td><?= number_format($sampah['berat'], 2, ',', '.') ?></td>
                     <td><?= number_format($sampah['total_harga'], 2, ',', '.') ?></td>
                     <td><?= $sampah['status'] ?></td>
+                    <td><?= $sampah['confirmed_by_pengelola'] ?></td>
                     <td>
                         <form method="POST" class="d-inline">
                             <input type="hidden" name="id_sampah" value="<?= $sampah['id'] ?>">
-                            <button value="selesai" name="status" class="btn btn-success mt-2" <?= ($sampah['status'] == 'selesai') ? 'disabled' : '' ?>>Selesai</button>
+                            <button value="selesai" name="status" class="btn btn-success mt-2" <?= ($sampah['confirmed_by_pengelola'] == 'diterima') ? 'disabled' : '' ?>>Selesai</button>
                         </form>
                         <form  method="POST" class="d-inline">
                             <input type="hidden" name="id_sampah" value="<?= $sampah['id'] ?>">

@@ -2,24 +2,20 @@
 session_start();
 require 'config/connect.php';
 
-// Periksa apakah pengguna sudah login
-if (!isset($_SESSION['user'])) {
-    header("Location: page.php?mod=home");
-    exit();
-}
+// Cek apakah pengelola sudah login
+// if (!isset($_SESSION['user'])) {
+//     header("Location: page.php?mod=home");
+//     exit();
+// }
 
-if ($_SESSION['user']['role'] == 'rumah_tangga') {
-    header("Location: page.php?mod=unaut");
-    exit();
-}
+// // Periksa apakah pengguna adalah pengelola
+// if ($_SESSION['user']['role'] !== 'pengelola') {
+//     // Jika bukan pengelola, redirect ke halaman unauthorized
+//     header("Location: page.php?mod=unaut2");
+//     exit();
+// }
 
-// Daftar peran yang tidak diizinkan
-$not_allowed_roles = ['admin', 'warung_mitra'];
-if (in_array($_SESSION['user']['role'], $not_allowed_roles)) {
-    // Jika pengguna memiliki salah satu dari peran yang tidak diizinkan, redirect mereka
-    header("Location: page.php?mod=unaut2");
-    exit();
-}
+// $id_pengelola = $_SESSION['user']['id'];
 
 // Periksa apakah ada ID sampah yang diberikan
 if (!isset($_GET['id'])) {
