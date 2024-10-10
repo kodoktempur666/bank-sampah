@@ -109,6 +109,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -124,7 +126,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background-color: #f4f6f9;
         }
 
-        h1, h2, h3, h4 {
+        h1,
+        h2,
+        h3,
+        h4 {
             font-weight: 600;
         }
 
@@ -152,7 +157,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-bottom: 20px;
         }
 
-        .table th, .table td {
+        .table th,
+        .table td {
             vertical-align: middle;
         }
 
@@ -171,6 +177,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 50px;
             margin-bottom: 10px;
         }
+                /* Kustomisasi untuk scrollbar pada browser berbasis Webkit (seperti Chrome, Safari) */
+::-webkit-scrollbar {
+    width: 12px; /* Lebar scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: #f4f6f9; /* Warna latar belakang track scrollbar */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #70de74; /* Warna scrollbar */
+    border-radius: 10px;
+    border: 3px solid #f4f6f9; /* Memberi efek padding dengan latar belakang */
+    transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out; /* Menambahkan transisi */
+}
+
+/* Hover effect pada scrollbar */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #34495e; /* Warna saat hover */
+    transform: scale(1.1); /* Sedikit memperbesar saat hover */
+}
+
+/* Scrollbar pada Firefox */
+scrollbar-color: #70de74 #f4f6f9; /* Warna thumb dan track */
+scrollbar-width: thin; /* Menjadikan scrollbar lebih tipis */
     </style>
 </head>
 
@@ -179,7 +211,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php include 'assets/components/header.php'; ?>
 
     <div class="container">
-        <h1 class="text-center">Dashboard <?=$nama?></h1>
+        <h1 class="text-center">Dashboard <?= $nama ?></h1>
         <div class="card p-4">
             <h3>Saldo: Rp. <?= number_format($current_saldo, 2, ',', '.') ?></h3>
             <a href="?mod=pembayaran" class="btn btn-primary mt-4">Bayar</a>
@@ -196,8 +228,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <th>Berat (kg)</th>
                             <th>Total Harga (Rp)</th>
                             <th>Status</th>
-                            <th>Pembayaran</th>
-                            <th>Aksi</th>
+                            <th>Pembayaran & Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -209,15 +240,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <td><?= number_format($sampah['berat'], 2, ',', '.') ?></td>
                                 <td><?= number_format($sampah['total_harga'], 2, ',', '.') ?></td>
                                 <td><?= $sampah['status'] ?></td>
-                                <td><?= $sampah['confirmed_by_rumah_tangga'] ?? 'Belum Dikonfirmasi' ?></td>
                                 <td>
-                                    <!-- Button to trigger modal for delete confirmation -->
-                                    <button class="btn btn-danger btn-sm" onclick="confirmDelete(<?= $sampah['id'] ?>)">Hapus</button>
-                                    <form method="POST" class="d-inline">
-                                        <input type="hidden" name="id_sampah" value="<?= $sampah['id'] ?>">
-                                        <input type="hidden" name="status" value="selesai">
-                                        <button value="selesai" name="status" class="btn btn-success mt-2" <?= ($sampah['confirmed_by_pengelola'] == 'belum diterima') ? 'disabled' : '' ?>>Terima Pembayaran</button>
-                                    </form>
+                                    <div class="d-flex flex-column">
+                                        <span><strong>Pembayaran:</strong>
+                                            <?= $sampah['confirmed_by_rumah_tangga'] ?? 'Belum Dikonfirmasi' ?></span>
+                                        <div class="mt-2">
+                                            <button class="btn btn-danger btn-sm"
+                                                onclick="confirmDelete(<?= $sampah['id'] ?>)">Hapus</button>
+
+                                            <!-- Tombol untuk membuka modal pembayaran -->
+                                            <button class="btn btn-success btn-sm mt-2"
+                                                onclick="openPaymentModal('<?= $sampah['nama_jenis'] ?>', '<?= $sampah['berat'] ?>', '<?= $sampah['total_harga'] ?>', '<?= $sampah['id'] ?>')"
+                                                <?= ($sampah['confirmed_by_pengelola'] == 'belum diterima') ? 'disabled' : '' ?>>
+                                                Terima Pembayaran
+                                            </button>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
@@ -231,6 +269,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
             <a href="page.php?mod=jual" class="btn btn-primary mt-4">Jual Sampah</a>
         </div>
+
 
         <!-- History Transaksi Sampah -->
         <div class="card p-4">
@@ -310,7 +349,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <!-- Modal Delete Confirmation -->
-    <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="modalDeleteLabel" aria-hidden="true">
+    <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="modalDeleteLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -333,6 +373,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </div>
+    <!-- Modal untuk Konfirmasi Pembayaran -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Konfirmasi Terima Pembayaran</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Jenis Sampah:</strong> <span id="modalJenisSampah"></span></p>
+                    <p><strong>Berat (kg):</strong> <span id="modalBerat"></span></p>
+                    <p><strong>Total Harga (Rp):</strong> <span id="modalTotalHarga"></span></p>
+                    <form method="POST" id="paymentForm">
+                        <input type="hidden" name="id_sampah" id="modalSampahId">
+                        <input type="hidden" name="status" value="selesai">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success" form="paymentForm">Konfirmasi Pembayaran</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -343,6 +410,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $('#modalDelete').modal('show');
         }
     </script>
-</body>
+    <script>
+        function openPaymentModal(jenisSampah, berat, totalHarga, sampahId) {
+            // Set modal data
+            document.getElementById('modalJenisSampah').innerText = jenisSampah;
+            document.getElementById('modalBerat').innerText = parseFloat(berat).toFixed(2).replace('.', ',');
+            document.getElementById('modalTotalHarga').innerText = parseFloat(totalHarga).toFixed(2).replace('.', ',');
+            document.getElementById('modalSampahId').value = sampahId;
 
-</html>
+            // Show modal
+            var paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            paymentModal.show();
+        }
+
+    </script>
+</body>

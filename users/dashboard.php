@@ -202,6 +202,33 @@ require 'config/connect.php';
                 transform: translateY(-10px);
             }
         }
+        /* Kustomisasi untuk scrollbar pada browser berbasis Webkit (seperti Chrome, Safari) */
+::-webkit-scrollbar {
+    width: 12px; /* Lebar scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: #f4f6f9; /* Warna latar belakang track scrollbar */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #70de74; /* Warna scrollbar */
+    border-radius: 10px;
+    border: 3px solid #f4f6f9; /* Memberi efek padding dengan latar belakang */
+    transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out; /* Menambahkan transisi */
+}
+
+/* Hover effect pada scrollbar */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #34495e; /* Warna saat hover */
+    transform: scale(1.1); /* Sedikit memperbesar saat hover */
+}
+
+/* Scrollbar pada Firefox */
+scrollbar-color: #70de74 #f4f6f9; /* Warna thumb dan track */
+scrollbar-width: thin; /* Menjadikan scrollbar lebih tipis */
+
     </style>
 </head>
 
@@ -287,6 +314,7 @@ require 'config/connect.php';
     <!-- Scripts for Bootstrap and Font Awesome -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
 </body>
 
 </html>

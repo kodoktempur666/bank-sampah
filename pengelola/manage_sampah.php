@@ -76,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_sampah'])) {
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+<?php include 'assets/components/headerpeng.php'; ?>
     <div class="container mt-5">
         <h1>Kelola Jenis & Harga Sampah</h1>
 

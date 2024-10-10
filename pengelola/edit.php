@@ -15,7 +15,7 @@ require 'config/connect.php';
 //     exit();
 // }
 
-// $id_pengelola = $_SESSION['user']['id'];
+$id_pengelola = $_SESSION['user']['id'];
 
 // Periksa apakah ada ID sampah yang diberikan
 if (!isset($_GET['id'])) {
@@ -70,6 +70,7 @@ $result_jenis_sampah = mysqli_query($conn, $query_jenis_sampah);
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<?php include 'assets/components/headerpeng.php'; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hitung Sampah</title>

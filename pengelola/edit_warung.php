@@ -15,7 +15,7 @@ require 'config/connect.php';
 //     exit();
 // }
 
-// $id_pengelola = $_SESSION['user']['id'];
+$id_pengelola = $_SESSION['user']['id'];
 
 
 // Cek apakah ada ID pengguna yang dikirimkan melalui URL
@@ -75,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+<?php include 'assets/components/headerpeng.php'; ?>
     <div class="container mt-5">
         <h1>Edit Pengguna</h1>
 

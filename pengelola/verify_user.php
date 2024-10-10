@@ -16,7 +16,7 @@ require 'config/connect.php';
 //     exit();
 // }
 
-// $id_pengelola = $_SESSION['user']['id'];
+$id_pengelola = $_SESSION['user']['id'];
 
 // Ambil semua pengguna rumah tangga
 $query_users = "SELECT * FROM rumah_tangga";
@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_user'])) {
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+<?php include 'assets/components/headerpeng.php'; ?>
     <div class="container mt-5">
         <h1>Kelola Akun Pengguna</h1>
         <a href="page.php?mod=pengelola" class="btn btn-warning mt-3">Home</a>

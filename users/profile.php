@@ -82,8 +82,8 @@ if (!$user) {
                                 <td><?php echo $user['nama']; ?></td>
                             </tr>
                             <tr>
-                                <th>Email</th>
-                                <td><?php echo $user['email']; ?></td>
+                                <th>RW</th>
+                                <td><?php echo $user['rw']; ?></td>
                             </tr>
                             <tr>
                                 <th>Nomor Telepon</th>

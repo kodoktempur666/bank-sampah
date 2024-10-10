@@ -1,109 +1,93 @@
 <?php
 include "config/connect.php";
-$mod = isset($_GET['mod']) ? $_GET['mod'] : '';
 
-if($_GET['mod']=='home') {
+// Ambil nilai 'mod' dari URL jika ada, jika tidak, gunakan string kosong
+$mod = isset($_GET['mod']) ? $_GET['mod'] : ''; 
+
+// Cek nilai dari $mod dan lakukan include file sesuai dengan mod yang diberikan
+if ($mod == 'home') {
     include "home.php";
     
-}
-
-elseif($_GET["mod"]== "register") {
+} elseif ($mod == 'register') {
     include "register/register.php";
 
-}
-
-elseif($_GET["mod"]== "reg-rumah") {
+} elseif ($mod == 'reg-rumah') {
     include "register/register_rumah.php";
 
-}
-
-elseif($_GET["mod"]== "reg-warung") {
+} elseif ($mod == 'reg-warung') {
     include "register/register_warung.php";
 
-}
-
-elseif($_GET["mod"]== "reg-pengelola") {
+} elseif ($mod == 'reg-pengelola') {
     include "register/register_pengelola.php";
 
-}
-
-elseif($_GET["mod"]== "verify") {
+} elseif ($mod == 'verify') {
     include "pengelola/verify_user.php";
-}
 
-elseif($_GET["mod"]== "verify-war") {
+} elseif ($mod == 'verify-war') {
     include "pengelola/verify_warung.php";
-}
 
-elseif($_GET["mod"]== "pengelola") {
+} elseif ($mod == 'pengelola') {
     include "pengelola/pengelola.php";
-}
 
-elseif($_GET["mod"]== "data-penarikan") {
+} elseif ($mod == 'data-penarikan') {
     include "pengelola/data_penarikan.php";
-}
 
-elseif($_GET["mod"]== "edit-sampah") {
+} elseif ($mod == 'edit-sampah') {
     include "pengelola/manage_sampah.php";
-}
 
-elseif($_GET["mod"]== "edit") {
+} elseif ($mod == 'edit') {
     include "pengelola/edit.php";
-}
 
-elseif($_GET["mod"]== "edit-user") {
+} elseif ($mod == 'edit-user') {
     include "pengelola/edit_user.php";
-}
 
-elseif($_GET["mod"]== "edit-war") {
+} elseif ($mod == 'edit-war') {
     include "pengelola/edit_warung.php";
-}
 
-elseif($_GET["mod"]== "warung") {
+} elseif ($mod == 'history') {
+    include "pengelola/history.php";
+
+} elseif ($mod == 'warung') {
     include "warung/warung.php";
-}
 
-elseif($_GET["mod"]== "pencairan") {
+} elseif ($mod == 'pencairan') {
     include "warung/pencairan_saldo.php";
-}
 
-elseif($_GET["mod"]== "admin") {
+} elseif ($mod == 'admin') {
     include "admin/dashboard.php";
-}
 
-elseif($_GET["mod"]== "admin-sampah") {
+} elseif ($mod == 'admin-sampah') {
     include "admin/manage_sampah.php";
-}
 
-elseif($_GET["mod"]== "admin-user") {
+} elseif ($mod == 'admin-user') {
     include "admin/manage_user.php";
-}
 
-elseif($_GET["mod"]== "jual") {
+} elseif ($mod == 'jual') {
     include "users/sell_sampah.php";
-}
 
-elseif($_GET["mod"]== "riwayat") {
+} elseif ($mod == 'riwayat') {
     include "users/riwayat.php";
-}
 
-elseif($_GET["mod"]== "profile") {
+} elseif ($mod == 'profile') {
     include "users/profile.php";
-}
 
-elseif($_GET["mod"]== "pembayaran") {
+} elseif ($mod == 'pembayaran') {
     include "users/pembayaran.php";
-}
 
-elseif($_GET["mod"]== "users") {
+} elseif ($mod == 'users') {
     include "users/dashboard.php";
-}
 
-elseif($_GET["mod"]== "unaut") {
+} elseif ($mod == 'unaut') {
     include "unauthorized.php";
-}
 
-elseif($_GET["mod"]== "unaut2") {
+} elseif ($mod == 'unaut2') {
     include "unauthorized2.php";
+
+} elseif ($mod == 'search') {
+    include "assets/components/search.php";
+
+} else {
+    // Jika mod tidak dikenali, Anda bisa memasukkan default behavior atau error page
+    echo "Halaman tidak ditemukan.";
 }
 ?>
