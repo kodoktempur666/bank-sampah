@@ -163,11 +163,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_riwayat_penarikan_id'])) {
         $hapus_riwayat_penarikan_id = $_POST['hapus_riwayat_penarikan_id'];
         $query_hapus_riwayat_penarikan = "DELETE FROM transaksi_pencairan WHERE id = '$hapus_riwayat_penarikan_id' AND status = 'gagal'";
-        
+
         if (mysqli_query($conn, $query_hapus_riwayat_penarikan)) {
-            echo "<script>alert('Riwayat pembayaran gagal berhasil dihapus.'); window.location.href='page.php?mod=riwayat-warung';</script>";
+            echo "<script>showPopup('Riwayat pembayaran gagal berhasil dihapus.'); window.location.href='page.php?mod=warung';</script>";
+
         } else {
-            echo "<script>alert('Terjadi kesalahan saat menghapus riwayat.'); window.location.href='page.php?mod=riwayat-warung';</script>";
+            echo "<script>showPopup('Terjadi kesalahan.'); window.location.href='page.php?mod=warung';</script>";
+
         }
     }
 
@@ -291,8 +293,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="btn-group mt-2 justify-content-center d-flex align-items-center">
                                 <form method="POST">
                                     <input type="hidden" name="hapus_riwayat_id" value="<?= $riwayat['id'] ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm btn-spacing"
-                                        onclick="return confirm('Apakah Anda yakin ingin menghapus riwayat pembayaran ini?')">Hapus</button>
+                                    <div class="btn-group mt-2 justify-content-center d-flex align-items-center">
+                                        <button type="button" class="btn btn-danger btn-sm btn-spacing"
+                                            onclick="showConfirmModal(<?= $riwayat['id'] ?>)">Hapus</button>
+                                    </div>
+
                                 </form>
                             </div>
                         <?php endif; ?>
@@ -305,129 +310,263 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
     </div>
     <style>
-    .status-pending {
-        background-color: yellow;
-        color: black;
-    }
-
-    .status-gagal {
-        background-color: crimson;
-        color: white;
-    }
-
-    .status-berhasil, .status-selesai {
-        background-color: green;
-        color: white;
-    }
-
-    .button-container {
-        margin-top: 10px;
-    }
-
-    .btn-chat, .btn-delete {
-        display: inline-block;
-        margin-right: 5px;
-        padding: 5px 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        color: white;
-    }
-
-    .btn-chat {
-        background-color: #25D366; /* WhatsApp color */
-    }
-
-    .btn-delete {
-        background-color: #DC3545; /* Delete button color */
-    }
-</style>
-
-<div class="container mt-5">
-    <h2>Status penarikan</h2>
-    <?php if (mysqli_num_rows($result_penarikan) > 0): ?>
-        <?php while ($riwayat_penarikan = mysqli_fetch_assoc($result_penarikan)): ?>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="data-item">
-                        <span class="data-label">Nama Warung:</span>
-                        <span class="data-value"><?= $riwayat_penarikan['nama_warung'] ?></span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">Status:</span>
-                        <span class="data-value">
-                            <div class="status <?= 'status-' . strtolower($riwayat_penarikan['status']) ?>">
-                                <?= $riwayat_penarikan['status'] ?>
-                            </div>
-                        </span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">Jumlah Penarikan (Rp):</span>
-                        <span class="data-value"><?= number_format($riwayat_penarikan['jumlah'], 2, ',', '.') ?></span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">Tanggal:</span>
-                        <span class="data-value"><?= date('d-m-Y', strtotime($riwayat_penarikan['tanggal'])) ?></span>
-                    </div>
-                    <?php if (strtolower($riwayat_penarikan['status']) == 'gagal'): ?>
-                        <div class="button-container d-flex justify-content-center">
-                            <a href="https://wa.me/62xxxxxxxxx?text=Halo%20Pengelola,%20saya%20ingin%20menanyakan%20tentang%20transaksi%20gagal%20pada%20penarikan%20ini." class="btn-chat">Chat Pengelola</a>
-                            <form method="POST">
-                                    <input type="hidden" name="hapus_riwayat_penarikan_id" value="<?= $riwayat_penarikan['id'] ?>">
-                                    <button type="submit"  class="btn-delete"
-                                        onclick="return confirm('Apakah Anda yakin ingin menghapus riwayat pembayaran ini?')">Hapus</button>
-                                </form>
-                            
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        <?php endwhile; ?>
-    <?php else: ?>
-        <p>Tidak ada riwayat penarikan.</p>
-    <?php endif; ?>
-</div>
-
-<div class="container mt-5">
-    <h2>Riwayat penarikan</h2>
-    <?php if (mysqli_num_rows($result_riwayat_penarikan) > 0): ?>
-        <?php while ($riwayat_riwayat_penarikan = mysqli_fetch_assoc($result_riwayat_penarikan)): ?>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="data-item">
-                        <span class="data-label">Nama Warung:</span>
-                        <span class="data-value"><?= $riwayat_riwayat_penarikan['nama_warung'] ?></span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">Status:</span>
-                        <span class="data-value">
-                            <div class="status <?= 'status-' . strtolower($riwayat_riwayat_penarikan['status']) ?>">
-                                <?= $riwayat_riwayat_penarikan['status'] ?>
-                            </div>
-                        </span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">Jumlah Penarikan (Rp):</span>
-                        <span class="data-value"><?= number_format($riwayat_riwayat_penarikan['jumlah'], 2, ',', '.') ?></span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">Tanggal:</span>
-                        <span class="data-value"><?= date('d-m-Y', strtotime($riwayat_riwayat_penarikan['tanggal'])) ?></span>
-                    </div>
-                </div>
-            </div>
-        <?php endwhile; ?>
-    <?php else: ?>
-        <p>Tidak ada riwayat penarikan.</p>
-    <?php endif; ?>
-</div>
-<script>
-    function confirmDelete(id) {
-        if (confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) {
-            window.location.href = "hapus_penarikan.php?id=" + id;
+        .status-pending {
+            background-color: yellow;
+            color: black;
         }
+
+        .status-gagal {
+            background-color: crimson;
+            color: white;
+        }
+
+        .status-berhasil,
+        .status-selesai {
+            background-color: green;
+            color: white;
+        }
+
+        .button-container {
+            margin-top: 10px;
+        }
+
+        .btn-chat,
+        .btn-delete {
+            display: inline-block;
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-chat {
+            background-color: #25D366;
+            /* WhatsApp color */
+        }
+
+        .btn-delete {
+            background-color: #DC3545;
+            /* Delete button color */
+        }
+    </style>
+
+    <div class="container mt-5">
+        <h2>Status penarikan</h2>
+        <?php if (mysqli_num_rows($result_penarikan) > 0): ?>
+            <?php while ($riwayat_penarikan = mysqli_fetch_assoc($result_penarikan)): ?>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="data-item">
+                            <span class="data-label">Nama Warung:</span>
+                            <span class="data-value"><?= $riwayat_penarikan['nama_warung'] ?></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Status:</span>
+                            <span class="data-value">
+                                <div class="status <?= 'status-' . strtolower($riwayat_penarikan['status']) ?>">
+                                    <?= $riwayat_penarikan['status'] ?>
+                                </div>
+                            </span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Jumlah Penarikan (Rp):</span>
+                            <span class="data-value"><?= number_format($riwayat_penarikan['jumlah'], 2, ',', '.') ?></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Tanggal:</span>
+                            <span class="data-value"><?= date('d-m-Y', strtotime($riwayat_penarikan['tanggal'])) ?></span>
+                        </div>
+                        <?php if (strtolower($riwayat_penarikan['status']) == 'gagal'): ?>
+                            <div class="button-container d-flex justify-content-center">
+                                <a href="https://wa.me/62xxxxxxxxx?text=Halo%20Pengelola,%20saya%20ingin%20menanyakan%20tentang%20transaksi%20gagal%20pada%20penarikan%20ini."
+                                    class="btn-chat">Chat Pengelola</a>
+                                <form method="POST">
+                                    <input type="hidden" name="hapus_riwayat_penarikan_id" value="<?= $riwayat_penarikan['id'] ?>">
+                                    <div class="btn-group mt-2 justify-content-center d-flex align-items-center">
+    <button type="button" class="btn-delete" onclick="showConfirmModal(<?= $riwayat_penarikan['id'] ?>)">Hapus</button>
+</div>
+
+                                </form>
+
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p>Tidak ada riwayat penarikan.</p>
+        <?php endif; ?>
+    </div>
+
+    <div class="container mt-5">
+        <h2>Riwayat penarikan</h2>
+        <?php if (mysqli_num_rows($result_riwayat_penarikan) > 0): ?>
+            <?php while ($riwayat_riwayat_penarikan = mysqli_fetch_assoc($result_riwayat_penarikan)): ?>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="data-item">
+                            <span class="data-label">Nama Warung:</span>
+                            <span class="data-value"><?= $riwayat_riwayat_penarikan['nama_warung'] ?></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Status:</span>
+                            <span class="data-value">
+                                <div class="status <?= 'status-' . strtolower($riwayat_riwayat_penarikan['status']) ?>">
+                                    <?= $riwayat_riwayat_penarikan['status'] ?>
+                                </div>
+                            </span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Jumlah Penarikan (Rp):</span>
+                            <span
+                                class="data-value"><?= number_format($riwayat_riwayat_penarikan['jumlah'], 2, ',', '.') ?></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Tanggal:</span>
+                            <span
+                                class="data-value"><?= date('d-m-Y', strtotime($riwayat_riwayat_penarikan['tanggal'])) ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p>Tidak ada riwayat penarikan.</p>
+        <?php endif; ?>
+    </div>
+    <!-- Modal Konfirmasi Hapus -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin menghapus riwayat pembayaran ini?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tidak</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Modal Popup -->
+    <div class="modal fade" id="popupModal" tabindex="-1" aria-labelledby="popupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="popupModalLabel">Informasi</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="popupMessage">
+                    <!-- Pesan akan diubah lewat JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Konfirmasi Hapus -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
+        aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Apakah Anda yakin ingin menghapus riwayat pembayaran ini?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tidak</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteButton">Ya, Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function showPopup(message) {
+            document.getElementById("popupMessage").innerText = message;
+            $('#popupModal').modal('show');
+        }
+    </script>
+
+    <script>
+        function confirmDelete(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) {
+                window.location.href = "hapus_penarikan.php?id=" + id;
+            }
+        }
+    </script>
+
+<script>
+    let deleteId = null;
+
+    function showConfirmModal(id) {
+        deleteId = id;
+        $('#confirmDeleteModal').modal('show');
     }
+
+    document.getElementById('confirmDeleteButton').addEventListener('click', function () {
+        if (deleteId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '';  // Tetapkan ke URL yang sesuai jika dibutuhkan
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'hapus_riwayat_id';
+            input.value = deleteId;
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
 </script>
+
+<script>
+    let deleteId = null;
+
+    function showConfirmModal(id) {
+        deleteId = id;
+        $('#confirmDeleteModal').modal('show');
+    }
+
+    document.getElementById('confirmDeleteButton').addEventListener('click', function () {
+        if (deleteId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '';  // Tentukan URL yang sesuai jika diperlukan
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'hapus_riwayat_penarikan_id';
+            input.value = deleteId;
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+</script>
+
+
 
     <footer>
         <p>&copy; 2024 Warung Mitra. All rights reserved.</p>

@@ -7,49 +7,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $alamat = mysqli_real_escape_string($conn, $_POST['alamat']);
     $kontak = mysqli_real_escape_string($conn, $_POST['kontak']);
     $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = $_POST['password']; // Hash password
-    $role = 'warung_mitra'; // Role is rumah_tangga
-    $is_verified = 0; // Akun belum diverifikasi, pengelola yang akan memverifikasi
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash password
+    $role = 'warung_mitra';
+    $is_verified = 0; // Akun belum diverifikasi
 
-    // Cek apakah ada data dengan email yang sama dan belum terverifikasi (is_verified = 0)
+    // Cek apakah ada data dengan nama warung yang sama dan belum terverifikasi
     $check_query = "SELECT * FROM warung_mitra WHERE nama_warung = '$nama_warung' AND is_verified = 0";
     $check_result = mysqli_query($conn, $check_query);
 
-    // Jika ditemukan data dengan is_verified = 0, hapus data tersebut
     if (mysqli_num_rows($check_result) > 0) {
         $delete_query = "DELETE FROM warung_mitra WHERE nama_warung = '$nama_warung' AND is_verified = 0";
         mysqli_query($conn, $delete_query);
     }
 
-    // Cek apakah nama, username, atau email sudah ada dengan is_verified = 1
+    // Cek apakah nama warung atau username sudah ada dengan is_verified = 1
     $check_query_verified = "SELECT * FROM warung_mitra WHERE (nama_warung = '$nama_warung' OR username = '$username') AND is_verified = 1";
     $check_result_verified = mysqli_query($conn, $check_query_verified);
 
     if (mysqli_num_rows($check_result_verified) > 0) {
-        // Jika ditemukan pengguna dengan nama, username, atau email yang sama
+        // Jika ditemukan pengguna dengan nama warung atau username yang sama
         $existing_data = mysqli_fetch_assoc($check_result_verified);
         if ($existing_data['nama_warung'] == $nama_warung) {
-            echo "<script>alert('Nama sudah terdaftar.');</script>";
+            $message = "Nama warung sudah terdaftar.";
         } elseif ($existing_data['username'] == $username) {
-            echo "<script>alert('Username sudah terdaftar.');</script>";
+            $message = "Username sudah terdaftar.";
         }
     } else {
         // Jika tidak ada data yang sama, lanjutkan proses registrasi
         $query = "INSERT INTO warung_mitra (nama_warung, alamat, kontak, username, password, is_verified) 
                   VALUES ('$nama_warung', '$alamat', '$kontak', '$username', '$password', '$is_verified')";
 
-        // Execute the query
         if (mysqli_query($conn, $query)) {
-            echo "<script>
-                alert('Registrasi berhasil. Akun Anda akan diverifikasi oleh pengelola.');
-                window.location.href = 'page.php?mod=home';
-            </script>";
-            exit();
+            $message = "Registrasi berhasil. Akun Anda akan diverifikasi oleh pengelola.";
         } else {
             // Gagal menyimpan data
-            $delete_query = "DELETE FROM warung_mitra WHERE nama_warung = '$nama_warung'";
-            mysqli_query($conn, $delete_query);
-            echo "<script>alert('Gagal menyimpan data.');</script>" . mysqli_error($conn);
+            $message = "Gagal menyimpan data: " . mysqli_error($conn);
         }
     }
 }
@@ -61,8 +53,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Rumah Tangga</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Register Warung Mitra</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <style>
         :root {
             --primary-color: #0077b6;
@@ -218,17 +212,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="text" class="form-control" id="username" name="username" required>
             </div>
 
-
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">Daftar</button>
-            <button type="button" class="btn btn-success" onclick="location.href='?mod=home'">Sudah punya akun?
-                Login</button>
+            <button type="button" class="btn btn-success" onclick="location.href='?mod=home'">Sudah punya akun? Login</button>
         </form>
     </div>
+
+    <!-- Modal HTML -->
+    <div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="responseModalLabel">Pemberitahuan</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php echo isset($message) ? $message : ''; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    <?php if (isset($message) && strpos($message, 'Registrasi berhasil') !== false) { ?>
+                        <a href="page.php?mod=home" class="btn btn-primary">Lanjutkan</a>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            <?php if (isset($message)) { ?>
+                $('#responseModal').modal('show');
+            <?php } ?>
+        });
+    </script>
 </body>
 
 </html>

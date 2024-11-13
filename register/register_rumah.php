@@ -9,48 +9,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $rw = mysqli_real_escape_string($conn, $_POST['rw']);
     $password = $_POST['password']; // Hash password
-    $role = 'rumah_tangga'; // Role  rumah_tangga
-    $is_verified = 0; // Akun belum diverifikasi, pengelola yang akan memverifikasi
+    $role = 'rumah_tangga'; // Role rumah_tangga
+    $is_verified = 0; // Akun belum diverifikasi
 
-    // Cek apakah ada data dengan email yang sama dan belum terverifikasi (is_verified = 0)
     $check_query = "SELECT * FROM rumah_tangga WHERE nama = '$nama' AND is_verified = 0";
     $check_result = mysqli_query($conn, $check_query);
 
-    // Jika ditemukan data dengan is_verified = 0, hapus data tersebut
     if (mysqli_num_rows($check_result) > 0) {
         $delete_query = "DELETE FROM rumah_tangga WHERE nama = '$nama' AND is_verified = 0";
         mysqli_query($conn, $delete_query);
     }
 
-    // Cek apakah nama, username, atau email sudah ada dengan is_verified = 1
     $check_query_verified = "SELECT * FROM rumah_tangga WHERE (nama = '$nama' OR username = '$username') AND is_verified = 1";
     $check_result_verified = mysqli_query($conn, $check_query_verified);
 
     if (mysqli_num_rows($check_result_verified) > 0) {
-        // Jika ditemukan pengguna dengan nama, username, atau email yang sama
         $existing_data = mysqli_fetch_assoc($check_result_verified);
         if ($existing_data['nama'] == $nama) {
-            echo "<script>alert('Nama sudah terdaftar.');</script>";
+            $message = "Nama sudah terdaftar.";
         } elseif ($existing_data['username'] == $username) {
-            echo "<script>alert('Username sudah terdaftar.');</script>";
+            $message = "Username sudah terdaftar.";
         }
     } else {
-        // Jika tidak ada data yang sama, lanjutkan proses registrasi
         $query = "INSERT INTO rumah_tangga (nama, alamat, kontak, username, rw, password, is_verified) 
                   VALUES ('$nama', '$alamat', '$kontak', '$username', '$rw', '$password', '$is_verified')";
 
-        // Execute the query
         if (mysqli_query($conn, $query)) {
-            echo "<script>
-                alert('Registrasi berhasil. Akun Anda akan diverifikasi oleh pengelola.');
-                window.location.href = 'page.php?mod=home';
-            </script>";
-            exit();
+            $message = "Registrasi berhasil. Akun Anda akan diverifikasi oleh pengelola.";
         } else {
-            // Gagal menyimpan data
             $delete_query = "DELETE FROM rumah_tangga WHERE nama = '$nama'";
             mysqli_query($conn, $delete_query);
-            echo "<script>alert('Gagal menyimpan data.');</script>" . mysqli_error($conn);
+            $message = "Gagal menyimpan data: " . mysqli_error($conn);
         }
     }
 }
@@ -62,8 +51,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Rumah Tangga</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Registrasi</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <style>
         :root {
             --primary-color: #0077b6;
@@ -234,6 +225,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 Login</button>
         </form>
     </div>
+    <!-- Modal HTML -->
+    <div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="responseModalLabel">Pemberitahuan</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php echo isset($message) ? $message : ''; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    <?php if (isset($message) && strpos($message, 'Registrasi berhasil') !== false) { ?>
+                        <a href="page.php?mod=home" class="btn btn-primary">Lanjutkan</a>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            <?php if (isset($message)) { ?>
+                $('#responseModal').modal('show');
+            <?php } ?>
+        });
+    </script>
 </body>
 
 </html>

@@ -123,8 +123,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Commit transaksi
             mysqli_commit($conn);
-            echo "Transaksi berhasil diproses.";
-            echo "<script>alert('Transaksi berhasil diproses.'); window.location.href='page.php?mod=warung';</script>";
+            echo "<script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: 'Transaksi berhasil diproses.',
+                showConfirmButton: true,
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.href = 'page.php?mod=warung';
+            });
+        </script>";
+
             ;
         } catch (Exception $e) {
             // Rollback jika terjadi kesalahan
@@ -146,7 +156,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
         // Redirect atau tampilkan pesan sukses
-        echo "<script>alert('Transaksi Telah Gagal'); window.location.href='page.php?mod=warung';</script>";
+        echo "<script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: 'Transaksi telah gagal.',
+        }).then(() => {
+            window.location.href = 'page.php?mod=warung';
+        });
+    </script>";
+
 
     }
 
@@ -157,7 +176,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $query_hapus = "DELETE FROM transaksi WHERE id = '$hapus_id'";
         mysqli_query($conn, $query_hapus);
         // Redirect atau tampilkan pesan sukses
-        echo "<script>alert('Transaksi berhasil dihapus.'); window.location.href='page.php?mod=warung';</script>";
+        echo "<script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Transaksi berhasil dihapus.',
+        }).then(() => {
+            window.location.href = 'page.php?mod=warung';
+        });
+    </script>";
+
 
     }
 
@@ -174,6 +202,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Warung Mitra Dashboard</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -274,19 +304,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="data-value"><?= date('d-m-Y', strtotime($pending['tanggal'])) ?></span>
                         </div>
                         <div class="btn-group mt-2 justify-content-center d-flex align-items-center justify-space-between">
-                            <form method="POST">
+                            <form method="POST" id="form-terima-<?= $pending['id'] ?>">
                                 <input type="hidden" name="transaksi_id" value="<?= $pending['id'] ?>">
-                                <button type="submit" class="btn btn-success btn-sm btn-spacing">Terima</button>
+                                <button type="button" class="btn btn-success btn-sm btn-spacing"
+                                    onclick="confirmTerima('<?= $pending['id'] ?>')">Terima</button>
                             </form>
-                            <form method="POST">
+
+                            <form method="POST" id="form-tolak-<?= $pending['id'] ?>">
                                 <input type="hidden" name="gagal_id" value="<?= $pending['id'] ?>">
-                                <button type="submit" class="btn btn-warning btn-sm btn-spacing">Tolak</button>
+                                <button type="button" class="btn btn-warning btn-sm btn-spacing"
+                                onclick="confirmTolak('<?= $pending['id'] ?>')">Tolak</button>
                             </form>
-                            <form method="POST">
+                            <form method="POST" id="form-hapus-<?= $pending['id'] ?>" onsubmit="return confirmDelete(this)">
                                 <input type="hidden" name="hapus_id" value="<?= $pending['id'] ?>">
-                                <button type="submit" class="btn btn-danger btn-sm btn-spacing"
-                                    onclick="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?')">Hapus</button>
+                                <button type="button" class="btn btn-danger btn-sm btn-spacing"
+                                onclick="confirmHapus('<?= $pending['id'] ?>')">Hapus</button>
                             </form>
+
                         </div>
 
 
@@ -334,8 +368,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="btn-group mt-2 justify-content-center d-flex align-items-center">
                                 <form method="POST">
                                     <input type="hidden" name="hapus_riwayat_id" value="<?= $riwayat['id'] ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm btn-spacing"
-                                        onclick="return confirm('Apakah Anda yakin ingin menghapus riwayat pembayaran ini?')">Hapus</button>
+                                    <div class="btn-group mt-2 justify-content-center d-flex align-items-center">
+    <button type="button" class="btn btn-danger btn-sm btn-spacing" onclick="showConfirmModal(<?= $riwayat['id'] ?>)">Hapus</button>
+</div>
+
                                 </form>
                             </div>
                         <?php endif; ?>
@@ -348,11 +384,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
     </div>
 
+    <!-- Modal Konfirmasi Hapus -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin menghapus riwayat pembayaran ini?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tidak</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 
     <footer>
         <p>&copy; 2024 Warung Mitra. All rights reserved.</p>
     </footer>
+
+    <script>
+        function confirmHapus(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false; // Mencegah form dikirim langsung
+        }
+    </script>
+
+    <script>
+        function confirmDelete(form) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false; // Mencegah form dikirim langsung
+        }
+    </script>
+    <script>
+    function confirmTerima(id) {
+        Swal.fire({
+            title: 'Konfirmasi Terima Transaksi',
+            text: "Apakah Anda yakin ingin menerima transaksi ini?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Terima',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`form-terima-${id}`).submit();
+            }
+        });
+    }
+</script>
+<script>
+    function confirmTolak(id) {
+        Swal.fire({
+            title: 'Konfirmasi Untuk Tolak Transaksi',
+            text: "Apakah Anda yakin ingin molak transaksi ini?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Tolak',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`form-tolak-${id}`).submit();
+            }
+        });
+    }
+</script>
+<script>
+    let deleteId = null;
+
+    function showConfirmModal(id) {
+        deleteId = id;
+        $('#confirmDeleteModal').modal('show');
+    }
+
+    document.getElementById('confirmDeleteButton').addEventListener('click', function () {
+        if (deleteId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '';  // Tetapkan ke URL yang sesuai jika dibutuhkan
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'hapus_riwayat_id';
+            input.value = deleteId;
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+</script>
+
+
+
 
     <!-- Bootstrap JS -->
     <script src="https://kit.fontawesome.com/0b79c15f2d.js" crossorigin="anonymous"></script>

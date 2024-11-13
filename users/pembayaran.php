@@ -117,13 +117,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <form id="paymentForm" method="POST">
                             <div class="form-group">
                                 <label for="id_warung_mitra">Pilih Warung Mitra</label>
+
                                 <select name="id_warung_mitra" id="id_warung_mitra" class="form-control" required>
                                     <?php
-                                    // Ambil daftar warung mitra
-                                    $query_warung = "SELECT * FROM warung_mitra";
+                                    // Ambil daftar warung mitra yang terverifikasi
+                                    $query_warung = "SELECT * FROM warung_mitra WHERE is_verified = 1";
                                     $result_warung = mysqli_query($conn, $query_warung);
-                                    while ($row = mysqli_fetch_assoc($result_warung)) {
-                                        echo "<option value='{$row['id']}'>{$row['nama_warung']}</option>";
+
+                                    if (mysqli_num_rows($result_warung) == 0) {
+                                        echo "<option>Tidak ada warung mitra yang tersedia</option>";
+                                    } else {
+                                        while ($row = mysqli_fetch_assoc($result_warung)) {
+                                            echo "<option value='{$row['id']}'>{$row['nama_warung']}</option>";
+                                        }
                                     }
                                     ?>
                                 </select>
