@@ -146,7 +146,7 @@
                 <a href="page.php?mod=search" class="nav-link"><i class="fas fa-search"></i> Cari</a>
             </li>
             <li class="nav-item">
-                <a href="page.php?mod=pengelola" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="page.php?mod=pengelola" class="nav-link"><i class="fas fa-home"></i> Daftar Penjualan</a>
             </li>
             <li class="nav-item">
                 <a href="page.php?mod=data-penarikan" class="nav-link"><i class="fas fa-database"></i> Data

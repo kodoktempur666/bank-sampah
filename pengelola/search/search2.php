@@ -2,16 +2,28 @@
 session_start();
 require 'config/connect.php';
 
-// Periksa apakah pengguna sudah login dan memiliki hak sebagai pengelola
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'pengelola') {
-    header("Location: page.php?mod=home");
-    exit();
-}
+// Cek apakah pengelola sudah login
+// if (!isset($_SESSION['user'])) {
+//     header("Location: page.php?mod=home");
+//     exit();
+// }
+
+// // Periksa apakah pengguna adalah pengelola
+// if ($_SESSION['user']['role'] !== 'pengelola') {
+//     // Jika bukan pengelola, redirect ke halaman unauthorized
+//     header("Location: page.php?mod=unaut2");
+//     exit();
+// }
 
 $id_pengelola = $_SESSION['user']['id'];
 
+$search_query = "";
+if (isset($_POST['search']) || isset($_GET['search'])) {
+    $search_query = isset($_POST['search']) ? $_POST['search'] : $_GET['search'];
+}
+
 // Ambil semua pengguna rumah tangga
-$query_users = "SELECT * FROM rumah_tangga";
+$query_users = "SELECT * FROM rumah_tangga WHERE nama LIKE '%$search_query%' ORDER BY nama ASC";
 $result_users = mysqli_query($conn, $query_users);
 
 // Hapus Pengguna
@@ -32,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_verify'])) {
     $query_verify = "UPDATE rumah_tangga SET is_verified = 1 WHERE id = '$id_user'";
     mysqli_query($conn, $query_verify);
 
-    header("Location: page.php?mod=verify");
+    header("Location: page.php?mod=search2&search=" . urlencode($search_query));
     exit();
 }
 ?>
@@ -74,8 +86,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_verify'])) {
     <?php include 'assets/components/headerpeng.php'; ?>
     <div class="container mt-5">
         <h1>Kelola Akun Pengguna</h1>
-        <a href="page.php?mod=pengelola" class="btn btn-warning mt-3">Home</a>
-        <a href="page.php?mod=search2" class="btn btn-warning mt-3">Search</a>
+        <a href="page.php?mod=verify" class="btn btn-warning mt-3">Kembali</a>
+        <h1 class="text-center">Pengelola Sampah Desa Salem</h1>
+
+        <!-- Form Pencarian -->
+        <form onsubmit="redirectToSearch(event)" class="mb-4">
+            <div class="form-group row">
+                <label for="search" class="col-sm-2 col-form-label">Cari Rumah Tangga:</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" id="search" name="search"
+                        placeholder="Masukkan Nama Rumah Tangga" value="<?= htmlspecialchars($search_query) ?>">
+                </div>
+                <div class="col-sm-2">
+                    <button type="button" onclick="redirectToSearch(event)" class="btn btn-primary">Cari</button>
+                </div>
+            </div>
+        </form>
+        <script>
+            function redirectToSearch(event) {
+                event.preventDefault();
+                const query = document.getElementById("search").value;
+                if (query) {
+                    window.location.href = `page.php?mod=search2&search=${encodeURIComponent(query)}`;
+                }
+            }
+        </script>
+
         <!-- List Data Pengguna -->
         <h4 class="mt-4">Akun Rumah Tangga</h4>
 

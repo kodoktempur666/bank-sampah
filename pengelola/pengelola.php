@@ -115,6 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="container mt-5">
         <h1 class="text-center mb-4">Pengelola Sampah Desa Salem</h1>
+        <h1 class="text-center mb-4">Daftar Order penjualan sampah</h1>
 
         <?php if (mysqli_num_rows($result_sampah) > 0): ?>
             <div class="row row-cols-1 row-cols-md-2 g-4">

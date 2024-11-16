@@ -88,9 +88,16 @@ elseif ($mod == 'edit-user') {
     include "unauthorized2.php";
 
 } elseif ($mod == 'search') {
-    include "pengelola/search.php";
+    include "pengelola/search/search.php";
 
-} elseif ($mod == 'riwayat-warung') {
+} elseif ($mod == 'search2') {
+    include "pengelola/search/search2.php";
+
+} elseif ($mod == 'search3') {
+    include "pengelola/search/search3.php";
+
+}
+elseif ($mod == 'riwayat-warung') {
     include "warung/riwayat_warung.php";
 
 } else {

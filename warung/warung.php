@@ -88,15 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result_transaksi = mysqli_query($conn, $query_transaksi);
     $transaksi = mysqli_fetch_assoc($result_transaksi);
 
-    if ($transaksi) {
         $id_rumah_tangga = $transaksi['id_rumah_tangga'];
         $id_warung_mitra = $transaksi['id_warung_mitra'];
         $jumlah_pembayaran = $transaksi['jumlah_pembayaran'];
 
+        
         // Mulai transaksi database
         mysqli_begin_transaction($conn);
 
-        try {
             // Ambil saldo rumah tangga
             $query_rumah_tangga = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
             $result_rumah_tangga = mysqli_query($conn, $query_rumah_tangga);
@@ -134,18 +133,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 window.location.href = 'page.php?mod=warung';
             });
         </script>";
+    // if ($transaksi) {
+    //     $id_rumah_tangga = $transaksi['id_rumah_tangga'];
+    //     $id_warung_mitra = $transaksi['id_warung_mitra'];
+    //     $jumlah_pembayaran = $transaksi['jumlah_pembayaran'];
 
-            ;
-        } catch (Exception $e) {
-            // Rollback jika terjadi kesalahan
-            mysqli_rollback($conn);
-            echo "Terjadi kesalahan: " . $e->getMessage();
-            echo "<script>alert('Terjadi kesalahan: '); window.location.href='page.php?mod=warung';</script>";
-            $e->getMessage();
-        }
-    } else {
-        echo "Transaksi tidak ditemukan.";
-    }
+    //     // Mulai transaksi database
+    //     mysqli_begin_transaction($conn);
+
+    //     try {
+    //         // Ambil saldo rumah tangga
+    //         $query_rumah_tangga = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
+    //         $result_rumah_tangga = mysqli_query($conn, $query_rumah_tangga);
+    //         $rumah_tangga = mysqli_fetch_assoc($result_rumah_tangga);
+
+    //         // Perbarui saldo rumah tangga
+    //         $saldo_baru_rumah_tangga = $rumah_tangga['saldo'] - $jumlah_pembayaran;
+    //         $update_rumah_tangga = "UPDATE rumah_tangga SET saldo = '$saldo_baru_rumah_tangga' WHERE id = '$id_rumah_tangga'";
+    //         mysqli_query($conn, $update_rumah_tangga);
+
+    //         // Ambil saldo warung mitra
+    //         $query_warung_mitra = "SELECT saldo FROM warung_mitra WHERE id = '$id_warung_mitra'";
+    //         $result_warung_mitra = mysqli_query($conn, $query_warung_mitra);
+    //         $warung_mitra = mysqli_fetch_assoc($result_warung_mitra);
+
+    //         // Perbarui saldo warung mitra
+    //         $saldo_baru_warung_mitra = $warung_mitra['saldo'] + $jumlah_pembayaran;
+    //         $update_warung_mitra = "UPDATE warung_mitra SET saldo = '$saldo_baru_warung_mitra' WHERE id = '$id_warung_mitra'";
+    //         mysqli_query($conn, $update_warung_mitra);
+
+    //         // Ubah status transaksi menjadi selesai
+    //         $update_transaksi = "UPDATE transaksi SET status = 'selesai' WHERE id = '$transaksi_id'";
+    //         mysqli_query($conn, $update_transaksi);
+
+    //         // Commit transaksi
+    //         mysqli_commit($conn);
+    //         echo "<script>
+    //         Swal.fire({
+    //             icon: 'success',
+    //             title: 'Berhasil!',
+    //             text: 'Transaksi berhasil diproses.',
+    //             showConfirmButton: true,
+    //             confirmButtonText: 'OK'
+    //         }).then(() => {
+    //             window.location.href = 'page.php?mod=warung';
+    //         });
+    //     </script>";
+
+    //         ;
+    //     } catch (Exception $e) {
+    //         // Rollback jika terjadi kesalahan
+    //         mysqli_rollback($conn);
+    //         echo "Terjadi kesalahan: " . $e->getMessage();
+    //         echo "<script>alert('Terjadi kesalahan: '); window.location.href='page.php?mod=warung';</script>";
+    //         $e->getMessage();
+    //     }
+    // } else {
+    //     echo "Transaksi tidak ditemukan.";
+    // }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gagal_id'])) {
 

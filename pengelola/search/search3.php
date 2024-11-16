@@ -17,8 +17,13 @@ require 'config/connect.php';
 
 $id_pengelola = $_SESSION['user']['id'];
 
+$search_query = "";
+if (isset($_POST['search']) || isset($_GET['search'])) {
+    $search_query = isset($_POST['search']) ? $_POST['search'] : $_GET['search'];
+}
+
 // Ambil semua pengguna warung mitra
-$query_users = "SELECT * FROM warung_mitra";
+$query_users = "SELECT * FROM warung_mitra WHERE nama_warung LIKE '%$search_query%' ORDER BY nama_warung ASC";
 $result_users = mysqli_query($conn, $query_users);
 
 // Hapus Pengguna
@@ -35,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_user'])) {
     $id_user = $_POST['id_user'];
     $query_verify = "UPDATE warung_mitra SET is_verified = 1 WHERE id = '$id_user'";
     mysqli_query($conn, $query_verify);
-    header("Location: page.php?mod=verify-war");
+    header("Location: page.php?mod=search3&search=" . urlencode($search_query));
     exit();
 }
 ?>
@@ -75,10 +80,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_user'])) {
 <?php include 'assets/components/headerpeng.php'; ?>
     <div class="container mt-5">
         <h1>Kelola Akun Mitra</h1>
-        <a href="page.php?mod=pengelola" class="btn btn-warning mt-3">Home</a>
-        <a href="page.php?mod=search3" class="btn btn-warning mt-3">Cari</a>
+        <a href="page.php?mod=verify-war" class="btn btn-warning mt-3">Kembali</a>
         <!-- List Data Mitra dalam Kartu -->
         <h4 class="mt-4">Akun Mitra</h4>
+        <form onsubmit="redirectToSearch(event)" class="mb-4">
+            <div class="form-group row">
+                <label for="search" class="col-sm-2 col-form-label">Cari Warung Mitra:</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" id="search" name="search"
+                        placeholder="Masukkan Nama Rumah Tangga" value="<?= htmlspecialchars($search_query) ?>">
+                </div>
+                <div class="col-sm-2">
+                    <button type="button" onclick="redirectToSearch(event)" class="btn btn-primary">Cari</button>
+                </div>
+            </div>
+        </form>
+        <script>
+            function redirectToSearch(event) {
+                event.preventDefault();
+                const query = document.getElementById("search").value;
+                if (query) {
+                    window.location.href = `page.php?mod=search3&search=${encodeURIComponent(query)}`;
+                }
+            }
+        </script>
         
         <?php while($user = mysqli_fetch_assoc($result_users)): ?>
         <div class="card mb-3">

@@ -400,7 +400,7 @@ scrollbar-width: thin; Menjadikan scrollbar lebih tipis; */
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="paymentModalLabel">Konfirmasi Terima Pembayaran</h5>
+                <h5 class="modal-title" id="paymentModalLabel">Konfirmasi Nilai Transaksi</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
             </div>
@@ -408,14 +408,15 @@ scrollbar-width: thin; Menjadikan scrollbar lebih tipis; */
                 <p><strong>Jenis Sampah:</strong> <span id="modalJenisSampah"></span></p>
                 <p><strong>Berat (kg):</strong> <span id="modalBerat"></span></p>
                 <p><strong>Total Harga (Rp):</strong> <span id="modalTotalHarga"></span></p>
+                <p><strong>Apakah Anda menyutujui nilai transaksi ini?</strong></p>
                 <form method="POST" id="paymentForm">
                     <input type="hidden" name="id_sampah" id="modalSampahId">
                     <input type="hidden" name="status" value="selesai">
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-success" onclick="showFinalConfirmation()">Konfirmasi Pembayaran</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tidak</button>
+                <button type="button" class="btn btn-success" onclick="showFinalConfirmation()">Setuju</button>
             </div>
         </div>
     </div>

@@ -114,7 +114,7 @@ $result_jenis_sampah = mysqli_query($conn, $query_jenis_sampah);
                 <input type="number" step="0.01" name="total_harga" id="total_harga" value="<?= $sampah['total_harga'] ?>" class="form-control" readonly>
             </div> -->
 
-            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
             <a href="page.php?mod=pengelola" class="btn btn-secondary">Batal</a>
         </form>
     </div>
