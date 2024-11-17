@@ -96,8 +96,10 @@ elseif ($mod == 'edit-user') {
 } elseif ($mod == 'search3') {
     include "pengelola/search/search3.php";
 
-}
-elseif ($mod == 'riwayat-warung') {
+} elseif ($mod == 'search-war') {
+    include "warung/search-war.php";
+
+} elseif ($mod == 'riwayat-warung') {
     include "warung/riwayat_warung.php";
 
 } else {

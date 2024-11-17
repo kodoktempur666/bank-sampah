@@ -2,10 +2,10 @@
 session_start();
 require 'config/connect.php';
 
-if (!isset($_SESSION['user'])) {
-    header("Location: page.php?mod=home");
-    exit();
-}
+// if (!isset($_SESSION['user'])) {
+//     header("Location: page.php?mod=home");
+//     exit();
+// }
 
 $id_warung = $_SESSION['user']['id'];
 
@@ -38,6 +38,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['confirm_penarikan'])) 
         $successMessage = true;
     }
 }
+
+// Ambil transaksi pending
+$query_penarikan = "SELECT tp.*, wm.nama_warung, wm.saldo AS saldo_warung
+                    FROM transaksi_pencairan tp
+                    JOIN warung_mitra wm ON tp.id_warung_mitra = wm.id
+                    WHERE tp.id_warung_mitra = '$id_warung' 
+                    AND (tp.status = 'gagal' OR tp.status = 'pending')";
+$result_penarikan = mysqli_query($conn, $query_penarikan);
+
+$query_riwayat_penarikan = "SELECT rp.*, wm.nama_warung
+                           FROM riwayat_penarikan rp
+                           JOIN warung_mitra wm ON rp.id_warung_mitra = wm.id
+                           WHERE rp.id_warung_mitra = '$id_warung'
+                           ORDER BY rp.tanggal DESC";
+$result_riwayat_penarikan = mysqli_query($conn, $query_riwayat_penarikan);
+
 ?>
 
 <!DOCTYPE html>
@@ -75,6 +91,133 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['confirm_penarikan'])) 
             <button type="button" class="btn btn-primary btn-block" onclick="showConfirmationModal()">Ajukan Penarikan</button>
             <input type="hidden" name="confirm_penarikan" value="1">
         </form>
+    </div>
+
+    <style>
+        .status-pending {
+            background-color: yellow;
+            color: black;
+        }
+
+        .status-gagal {
+            background-color: crimson;
+            color: white;
+        }
+
+        .status-berhasil,
+        .status-selesai {
+            background-color: green;
+            color: white;
+        }
+
+        .button-container {
+            margin-top: 10px;
+        }
+
+        .btn-chat,
+        .btn-delete {
+            display: inline-block;
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-chat {
+            background-color: #25D366;
+            /* WhatsApp color */
+        }
+
+        .btn-delete {
+            background-color: #DC3545;
+            /* Delete button color */
+        }
+    </style>
+
+    <div class="container mt-5">
+        <h2>Status penarikan</h2>
+        <?php if (mysqli_num_rows($result_penarikan) > 0): ?>
+            <?php while ($riwayat_penarikan = mysqli_fetch_assoc($result_penarikan)): ?>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="data-item">
+                            <span class="data-label">Nama Warung:</span>
+                            <span class="data-value"><?= $riwayat_penarikan['nama_warung'] ?></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Status:</span>
+                            <span class="data-value">
+                                <div class="status <?= 'status-' . strtolower($riwayat_penarikan['status']) ?>">
+                                    <?= $riwayat_penarikan['status'] ?>
+                                </div>
+                            </span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Jumlah Penarikan (Rp):</span>
+                            <span class="data-value"><?= number_format($riwayat_penarikan['jumlah'], 2, ',', '.') ?></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Tanggal:</span>
+                            <span class="data-value"><?= date('d-m-Y', strtotime($riwayat_penarikan['tanggal'])) ?></span>
+                        </div>
+                        <?php if (strtolower($riwayat_penarikan['status']) == 'gagal'): ?>
+                            <div class="button-container d-flex justify-content-center">
+                                <a href="https://wa.me/62xxxxxxxxx?text=Halo%20Pengelola,%20saya%20ingin%20menanyakan%20tentang%20transaksi%20gagal%20pada%20penarikan%20ini."
+                                    class="btn-chat">Chat Pengelola</a>
+                                <form method="POST">
+                                    <input type="hidden" name="hapus_riwayat_penarikan_id" value="<?= $riwayat_penarikan['id'] ?>">
+                                    <div class="btn-group mt-2 justify-content-center d-flex align-items-center">
+    <button type="button" class="btn-delete" onclick="showConfirmModal(<?= $riwayat_penarikan['id'] ?>)">Hapus</button>
+</div>
+
+                                </form>
+
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p>Tidak ada riwayat penarikan.</p>
+        <?php endif; ?>
+    </div>
+
+    <div class="container mt-5">
+        <h2>Riwayat penarikan</h2>
+        <?php if (mysqli_num_rows($result_riwayat_penarikan) > 0): ?>
+            <?php while ($riwayat_riwayat_penarikan = mysqli_fetch_assoc($result_riwayat_penarikan)): ?>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="data-item">
+                            <span class="data-label">Nama Warung:</span>
+                            <span class="data-value"><?= $riwayat_riwayat_penarikan['nama_warung'] ?></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Status:</span>
+                            <span class="data-value">
+                                <div class="status <?= 'status-' . strtolower($riwayat_riwayat_penarikan['status']) ?>">
+                                    <?= $riwayat_riwayat_penarikan['status'] ?>
+                                </div>
+                            </span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Jumlah Penarikan (Rp):</span>
+                            <span
+                                class="data-value"><?= number_format($riwayat_riwayat_penarikan['jumlah'], 2, ',', '.') ?></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Tanggal:</span>
+                            <span
+                                class="data-value"><?= date('d-m-Y', strtotime($riwayat_riwayat_penarikan['tanggal'])) ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p>Tidak ada riwayat penarikan.</p>
+        <?php endif; ?>
     </div>
     
 
@@ -132,7 +275,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['confirm_penarikan'])) 
         $(document).ready(function() {
             $('#successModal').modal('show');
             setTimeout(function() {
-                window.location.href = 'page.php?mod=warung';
+                window.location.href = 'page.php?mod=pencairan';
             }, 3000);
         });
         <?php endif; ?>

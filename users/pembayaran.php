@@ -26,6 +26,13 @@ if ($result_saldo && mysqli_num_rows($result_saldo) > 0) {
     $current_saldo = 0; // Tetapkan nilai default jika saldo tidak ditemukan
 }
 
+$query_riwayat = "SELECT t.*, wm.nama_warung 
+                  FROM transaksi t 
+                  JOIN warung_mitra wm ON t.id_warung_mitra = wm.id 
+                  WHERE t.id_rumah_tangga = '$id_rumah_tangga' 
+                  ORDER BY t.tanggal DESC";
+$result_riwayat = mysqli_query($conn, $query_riwayat);
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jumlah_pembayaran = floatval($_POST['jumlah_pembayaran']);
     $id_warung_mitra = $_POST['id_warung_mitra'];
@@ -154,6 +161,68 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
     </div>
+
+    <div class="container mt-5">
+    <!-- Riwayat Pembayaran -->
+    <div class="card p-4">
+            <h4>Riwayat Pembayaran</h4>
+            <?php 
+            $adaPembayaranGagal = false;
+
+            // Loop pertama untuk cek status "gagal" tanpa menampilkan data
+            mysqli_data_seek($result_riwayat, 0); // Kembali ke awal hasil query
+            while ($riwayat = mysqli_fetch_assoc($result_riwayat)) {
+                if ($riwayat['status'] === 'gagal') {
+                    $adaPembayaranGagal = true;
+                    break;
+                }
+            }
+            ?>
+
+            <?php if ($adaPembayaranGagal): ?>
+                <div class="alert alert-danger" role="alert">
+                    <strong>Pembayaran gagal!</strong> Dikarenakan kurangnya pembayaran pada saat transaksi di warung terkait.
+                    Harap hubungi warung terkait untuk menyelesaikan pembayaran.
+                </div>
+            <?php endif; ?>
+
+            <?php if (mysqli_num_rows($result_riwayat) > 0): ?>
+                <div class="row gy-4">
+                    <?php 
+                    // Loop kedua untuk menampilkan data dalam bentuk kartu
+                    mysqli_data_seek($result_riwayat, 0); // Kembali ke awal hasil query
+                    while ($riwayat = mysqli_fetch_assoc($result_riwayat)): 
+                    ?>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= htmlspecialchars($riwayat['nama_warung']) ?></h5>
+                                    <p class="card-text">
+                                        <strong>Jumlah Pembayaran:</strong> Rp<?= number_format($riwayat['jumlah_pembayaran'], 2, ',', '.') ?><br>
+                                        <strong>Status:</strong> <?= htmlspecialchars($riwayat['status']) ?><br>
+                                        <strong>Keterangan:</strong> <?= htmlspecialchars($riwayat['keterangan']) ?><br>
+                                        <strong>Tanggal:</strong> <?= htmlspecialchars($riwayat['tanggal']) ?>
+                                    </p>
+                                </div>
+                                <?php if ($riwayat['status'] === 'gagal'): ?>
+                                    <div class="card-footer text-danger">
+                                        Perlu perhatian lebih
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+            <?php else: ?>
+                <div class="text-center text-muted mt-4">
+                    <i class="fas fa-receipt fa-2x"></i>
+                    <p class="mt-2">Tidak ada riwayat pembayaran.</p>
+                </div>
+            <?php endif; ?>
+        </div>        
+    </div>
+
+ 
 
     <!-- Modal Konfirmasi Pembayaran -->
     <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel"

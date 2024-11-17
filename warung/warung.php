@@ -78,9 +78,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_riwayat_id'])) 
     echo "<script>alert('Riwayat pembayaran gagal berhasil dihapus.'); window.location.href='page.php?mod=warung';</script>";
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_id'])) {
+    $hapus_id = $_POST['hapus_id'];
+    $query_hapus = "DELETE FROM transaksi WHERE id = '$hapus_id'";
+    mysqli_query($conn, $query_hapus);
 
+    // Redirect atau tampilkan pesan sukses
+    echo "<script>alert('Transaksi berhasil dihapus.'); window.location.href='page.php?mod=warung';</script>";
+}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['transaksi_id'])) {
+
     $transaksi_id = $_POST['transaksi_id'];
 
     // Ambil data transaksi
@@ -88,153 +96,230 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result_transaksi = mysqli_query($conn, $query_transaksi);
     $transaksi = mysqli_fetch_assoc($result_transaksi);
 
-        $id_rumah_tangga = $transaksi['id_rumah_tangga'];
-        $id_warung_mitra = $transaksi['id_warung_mitra'];
-        $jumlah_pembayaran = $transaksi['jumlah_pembayaran'];
+    $id_rumah_tangga = $transaksi['id_rumah_tangga'];
+    $id_warung_mitra = $transaksi['id_warung_mitra'];
+    $jumlah_pembayaran = $transaksi['jumlah_pembayaran'];
 
-        
-        // Mulai transaksi database
-        mysqli_begin_transaction($conn);
+    // Mulai transaksi database
+    mysqli_begin_transaction($conn);
 
-            // Ambil saldo rumah tangga
-            $query_rumah_tangga = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
-            $result_rumah_tangga = mysqli_query($conn, $query_rumah_tangga);
-            $rumah_tangga = mysqli_fetch_assoc($result_rumah_tangga);
+    $query_update_saldo = "UPDATE rumah_tangga SET saldo = saldo - $jumlah_pembayaran WHERE id = '$id_rumah_tangga'";
+    mysqli_query($conn, $query_update_saldo);
 
-            // Perbarui saldo rumah tangga
-            $saldo_baru_rumah_tangga = $rumah_tangga['saldo'] - $jumlah_pembayaran;
-            $update_rumah_tangga = "UPDATE rumah_tangga SET saldo = '$saldo_baru_rumah_tangga' WHERE id = '$id_rumah_tangga'";
-            mysqli_query($conn, $update_rumah_tangga);
+    $query_update_warung_mitra = "UPDATE warung_mitra SET saldo = saldo + $jumlah_pembayaran WHERE id = '$id_warung_mitra'";
+    mysqli_query($conn, $query_update_warung_mitra);
 
-            // Ambil saldo warung mitra
-            $query_warung_mitra = "SELECT saldo FROM warung_mitra WHERE id = '$id_warung_mitra'";
-            $result_warung_mitra = mysqli_query($conn, $query_warung_mitra);
-            $warung_mitra = mysqli_fetch_assoc($result_warung_mitra);
+    $query_update_transaksi = "UPDATE transaksi SET status = 'selesai' WHERE id = '$transaksi_id'";
+    mysqli_query($conn, $query_update_transaksi);
 
-            // Perbarui saldo warung mitra
-            $saldo_baru_warung_mitra = $warung_mitra['saldo'] + $jumlah_pembayaran;
-            $update_warung_mitra = "UPDATE warung_mitra SET saldo = '$saldo_baru_warung_mitra' WHERE id = '$id_warung_mitra'";
-            mysqli_query($conn, $update_warung_mitra);
+    // Commit transaksi database
+    // header("Location: page.php?mod=warung");
+    // exit();
 
-            // Ubah status transaksi menjadi selesai
-            $update_transaksi = "UPDATE transaksi SET status = 'selesai' WHERE id = '$transaksi_id'";
-            mysqli_query($conn, $update_transaksi);
+    mysqli_commit($conn);
+    header("Location: page.php?mod=warung");
+    exit();
 
-            // Commit transaksi
-            mysqli_commit($conn);
-            echo "<script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: 'Transaksi berhasil diproses.',
-                showConfirmButton: true,
-                confirmButtonText: 'OK'
-            }).then(() => {
-                window.location.href = 'page.php?mod=warung';
-            });
-        </script>";
-    // if ($transaksi) {
-    //     $id_rumah_tangga = $transaksi['id_rumah_tangga'];
-    //     $id_warung_mitra = $transaksi['id_warung_mitra'];
-    //     $jumlah_pembayaran = $transaksi['jumlah_pembayaran'];
+    // echo "<script>
+    // Swal.fire({
+    //     icon: 'success',
+    //     title: 'Berhasil!',
+    //     text: 'Transaksi berhasil diproses.',
+    //     showConfirmButton: true,
+    //     confirmButtonText: 'OK'
+    // }).then(() => {
+    //     window.location.href = 'page.php?mod=warung';
+    // });
+    // </script>";
 
-    //     // Mulai transaksi database
-    //     mysqli_begin_transaction($conn);
+}  
 
-    //     try {
-    //         // Ambil saldo rumah tangga
-    //         $query_rumah_tangga = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
-    //         $result_rumah_tangga = mysqli_query($conn, $query_rumah_tangga);
-    //         $rumah_tangga = mysqli_fetch_assoc($result_rumah_tangga);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gagal_id'])) {
 
-    //         // Perbarui saldo rumah tangga
-    //         $saldo_baru_rumah_tangga = $rumah_tangga['saldo'] - $jumlah_pembayaran;
-    //         $update_rumah_tangga = "UPDATE rumah_tangga SET saldo = '$saldo_baru_rumah_tangga' WHERE id = '$id_rumah_tangga'";
-    //         mysqli_query($conn, $update_rumah_tangga);
-
-    //         // Ambil saldo warung mitra
-    //         $query_warung_mitra = "SELECT saldo FROM warung_mitra WHERE id = '$id_warung_mitra'";
-    //         $result_warung_mitra = mysqli_query($conn, $query_warung_mitra);
-    //         $warung_mitra = mysqli_fetch_assoc($result_warung_mitra);
-
-    //         // Perbarui saldo warung mitra
-    //         $saldo_baru_warung_mitra = $warung_mitra['saldo'] + $jumlah_pembayaran;
-    //         $update_warung_mitra = "UPDATE warung_mitra SET saldo = '$saldo_baru_warung_mitra' WHERE id = '$id_warung_mitra'";
-    //         mysqli_query($conn, $update_warung_mitra);
-
-    //         // Ubah status transaksi menjadi selesai
-    //         $update_transaksi = "UPDATE transaksi SET status = 'selesai' WHERE id = '$transaksi_id'";
-    //         mysqli_query($conn, $update_transaksi);
-
-    //         // Commit transaksi
-    //         mysqli_commit($conn);
-    //         echo "<script>
-    //         Swal.fire({
-    //             icon: 'success',
-    //             title: 'Berhasil!',
-    //             text: 'Transaksi berhasil diproses.',
-    //             showConfirmButton: true,
-    //             confirmButtonText: 'OK'
-    //         }).then(() => {
-    //             window.location.href = 'page.php?mod=warung';
-    //         });
-    //     </script>";
-
-    //         ;
-    //     } catch (Exception $e) {
-    //         // Rollback jika terjadi kesalahan
-    //         mysqli_rollback($conn);
-    //         echo "Terjadi kesalahan: " . $e->getMessage();
-    //         echo "<script>alert('Terjadi kesalahan: '); window.location.href='page.php?mod=warung';</script>";
-    //         $e->getMessage();
-    //     }
-    // } else {
-    //     echo "Transaksi tidak ditemukan.";
-    // }
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gagal_id'])) {
-
-        // Proses untuk menghapus transaksi
-        $gagal_id = $_POST['gagal_id'];
-        $query_gagal = "UPDATE transaksi SET status = 'gagal' WHERE id = '$gagal_id'";
-        mysqli_query($conn, $query_gagal);
+    // Proses untuk menghapus transaksi
+    $gagal_id = $_POST['gagal_id'];
+    $query_gagal = "UPDATE transaksi SET status = 'gagal' WHERE id = '$gagal_id'";
+    mysqli_query($conn, $query_gagal);
 
 
-        // Redirect atau tampilkan pesan sukses
-        echo "<script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal',
-            text: 'Transaksi telah gagal.',
-        }).then(() => {
-            window.location.href = 'page.php?mod=warung';
-        });
-    </script>";
+    // Redirect atau tampilkan pesan sukses
+    mysqli_commit($conn);
+    header("Location: page.php?mod=warung");
+    exit();
 
-
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_id'])) {
-
-        // Proses untuk menghapus transaksi
-        $hapus_id = $_POST['hapus_id'];
-        $query_hapus = "DELETE FROM transaksi WHERE id = '$hapus_id'";
-        mysqli_query($conn, $query_hapus);
-        // Redirect atau tampilkan pesan sukses
-        echo "<script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil',
-            text: 'Transaksi berhasil dihapus.',
-        }).then(() => {
-            window.location.href = 'page.php?mod=warung';
-        });
-    </script>";
-
-
-    }
 
 }
+    
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_id'])) {
+
+    // Proses untuk menghapus transaksi
+    $hapus_id = $_POST['hapus_id'];
+    $query_hapus = "DELETE FROM transaksi WHERE id = '$hapus_id'";
+    mysqli_query($conn, $query_hapus);
+    // Redirect atau tampilkan pesan sukses
+    mysqli_commit($conn);
+    header("Location: page.php?mod=warung");
+    exit();
+
+
+}
+
+
+// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+//     $transaksi_id = $_POST['transaksi_id'];
+
+//     // Ambil data transaksi
+//     $query_transaksi = "SELECT * FROM transaksi WHERE id = '$transaksi_id'";
+//     $result_transaksi = mysqli_query($conn, $query_transaksi);
+//     $transaksi = mysqli_fetch_assoc($result_transaksi);
+
+//         $id_rumah_tangga = $transaksi['id_rumah_tangga'];
+//         $id_warung_mitra = $transaksi['id_warung_mitra'];
+//         $jumlah_pembayaran = $transaksi['jumlah_pembayaran'];
+
+        
+//         // Mulai transaksi database
+//         mysqli_begin_transaction($conn);
+
+//             // Ambil saldo rumah tangga
+//             $query_rumah_tangga = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
+//             $result_rumah_tangga = mysqli_query($conn, $query_rumah_tangga);
+//             $rumah_tangga = mysqli_fetch_assoc($result_rumah_tangga);
+
+//             // Perbarui saldo rumah tangga
+//             $saldo_baru_rumah_tangga = $rumah_tangga['saldo'] - $jumlah_pembayaran;
+//             $update_rumah_tangga = "UPDATE rumah_tangga SET saldo = '$saldo_baru_rumah_tangga' WHERE id = '$id_rumah_tangga'";
+//             mysqli_query($conn, $update_rumah_tangga);
+
+//             // Ambil saldo warung mitra
+//             $query_warung_mitra = "SELECT saldo FROM warung_mitra WHERE id = '$id_warung_mitra'";
+//             $result_warung_mitra = mysqli_query($conn, $query_warung_mitra);
+//             $warung_mitra = mysqli_fetch_assoc($result_warung_mitra);
+
+//             // Perbarui saldo warung mitra
+//             $saldo_baru_warung_mitra = $warung_mitra['saldo'] + $jumlah_pembayaran;
+//             $update_warung_mitra = "UPDATE warung_mitra SET saldo = '$saldo_baru_warung_mitra' WHERE id = '$id_warung_mitra'";
+//             mysqli_query($conn, $update_warung_mitra);
+
+//             // Ubah status transaksi menjadi selesai
+//             $update_transaksi = "UPDATE transaksi SET status = 'selesai' WHERE id = '$transaksi_id'";
+//             mysqli_query($conn, $update_transaksi);
+
+//             // Commit transaksi
+//             mysqli_commit($conn);
+//             echo "<script>
+//             Swal.fire({
+//                 icon: 'success',
+//                 title: 'Berhasil!',
+//                 text: 'Transaksi berhasil diproses.',
+//                 showConfirmButton: true,
+//                 confirmButtonText: 'OK'
+//             }).then(() => {
+//                 window.location.href = 'page.php?mod=warung';
+//             });
+//         </script>";
+//     // if ($transaksi) {
+//     //     $id_rumah_tangga = $transaksi['id_rumah_tangga'];
+//     //     $id_warung_mitra = $transaksi['id_warung_mitra'];
+//     //     $jumlah_pembayaran = $transaksi['jumlah_pembayaran'];
+
+//     //     // Mulai transaksi database
+//     //     mysqli_begin_transaction($conn);
+
+//     //     try {
+//     //         // Ambil saldo rumah tangga
+//     //         $query_rumah_tangga = "SELECT saldo FROM rumah_tangga WHERE id = '$id_rumah_tangga'";
+//     //         $result_rumah_tangga = mysqli_query($conn, $query_rumah_tangga);
+//     //         $rumah_tangga = mysqli_fetch_assoc($result_rumah_tangga);
+
+//     //         // Perbarui saldo rumah tangga
+//     //         $saldo_baru_rumah_tangga = $rumah_tangga['saldo'] - $jumlah_pembayaran;
+//     //         $update_rumah_tangga = "UPDATE rumah_tangga SET saldo = '$saldo_baru_rumah_tangga' WHERE id = '$id_rumah_tangga'";
+//     //         mysqli_query($conn, $update_rumah_tangga);
+
+//     //         // Ambil saldo warung mitra
+//     //         $query_warung_mitra = "SELECT saldo FROM warung_mitra WHERE id = '$id_warung_mitra'";
+//     //         $result_warung_mitra = mysqli_query($conn, $query_warung_mitra);
+//     //         $warung_mitra = mysqli_fetch_assoc($result_warung_mitra);
+
+//     //         // Perbarui saldo warung mitra
+//     //         $saldo_baru_warung_mitra = $warung_mitra['saldo'] + $jumlah_pembayaran;
+//     //         $update_warung_mitra = "UPDATE warung_mitra SET saldo = '$saldo_baru_warung_mitra' WHERE id = '$id_warung_mitra'";
+//     //         mysqli_query($conn, $update_warung_mitra);
+
+//     //         // Ubah status transaksi menjadi selesai
+//     //         $update_transaksi = "UPDATE transaksi SET status = 'selesai' WHERE id = '$transaksi_id'";
+//     //         mysqli_query($conn, $update_transaksi);
+
+//     //         // Commit transaksi
+//     //         mysqli_commit($conn);
+//     //         echo "<script>
+//     //         Swal.fire({
+//     //             icon: 'success',
+//     //             title: 'Berhasil!',
+//     //             text: 'Transaksi berhasil diproses.',
+//     //             showConfirmButton: true,
+//     //             confirmButtonText: 'OK'
+//     //         }).then(() => {
+//     //             window.location.href = 'page.php?mod=warung';
+//     //         });
+//     //     </script>";
+
+//     //         ;
+//     //     } catch (Exception $e) {
+//     //         // Rollback jika terjadi kesalahan
+//     //         mysqli_rollback($conn);
+//     //         echo "Terjadi kesalahan: " . $e->getMessage();
+//     //         echo "<script>alert('Terjadi kesalahan: '); window.location.href='page.php?mod=warung';</script>";
+//     //         $e->getMessage();
+//     //     }
+//     // } else {
+//     //     echo "Transaksi tidak ditemukan.";
+//     // }
+
+//     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gagal_id'])) {
+
+//         // Proses untuk menghapus transaksi
+//         $gagal_id = $_POST['gagal_id'];
+//         $query_gagal = "UPDATE transaksi SET status = 'gagal' WHERE id = '$gagal_id'";
+//         mysqli_query($conn, $query_gagal);
+
+
+//         // Redirect atau tampilkan pesan sukses
+//         echo "<script>
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Gagal',
+//             text: 'Transaksi telah gagal.',
+//         }).then(() => {
+//             window.location.href = 'page.php?mod=warung';
+//         });
+//     </script>";
+
+
+//     }
+
+//     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_id'])) {
+
+//         // Proses untuk menghapus transaksi
+//         $hapus_id = $_POST['hapus_id'];
+//         $query_hapus = "DELETE FROM transaksi WHERE id = '$hapus_id'";
+//         mysqli_query($conn, $query_hapus);
+//         // Redirect atau tampilkan pesan sukses
+//         echo "<script>
+//         Swal.fire({
+//             icon: 'success',
+//             title: 'Berhasil',
+//             text: 'Transaksi berhasil dihapus.',
+//         }).then(() => {
+//             window.location.href = 'page.php?mod=warung';
+//         });
+//     </script>";
+
+
+//     }
+
+// }
 
 
 ?>
@@ -379,8 +464,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Riwayat Pembayaran Section -->
     <div class="container mt-5">
         <h2>Riwayat Pembayaran</h2>
+
+
         <?php if (mysqli_num_rows($result_riwayat) > 0): ?>
             <?php while ($riwayat = mysqli_fetch_assoc($result_riwayat)): ?>
+                <?php if ($riwayat['status'] == 'gagal'): ?>
+                <h5 style="color: red;">Silahkan Hapus Riwayat Pembayaran yang berstatus "gagal"</h5>
+                <h5 style="color: red;">Apabila pembeli telah melakukan pembayaran ulang</h5>
+                <?php endif; ?>
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="data-item">

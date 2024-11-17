@@ -2,10 +2,10 @@
 session_start();
 require 'config/connect.php';
 
-if (!isset($_SESSION['user'])) {
-    header("Location: page.php?mod=home");
-    exit();
-}
+// if (!isset($_SESSION['user'])) {
+//     header("Location: page.php?mod=home");
+//     exit();
+// }
 
 // // Periksa apakah pengguna adalah pengelola
 // if ($_SESSION['user']['role'] !== 'warung_mitra') {
@@ -13,6 +13,11 @@ if (!isset($_SESSION['user'])) {
 //     header("Location: page.php?mod=unaut2");
 //     exit();
 // }
+
+$search_query = "";
+if (isset($_POST['search']) || isset($_GET['search'])) {
+    $search_query = isset($_POST['search']) ? $_POST['search'] : $_GET['search'];
+}
 
 $id_warung = $_SESSION['user']['id'];
 
@@ -44,10 +49,15 @@ $query_riwayat = "SELECT t.*, wm.nama_warung, r.nama AS nama_pembayar
                   FROM transaksi t 
                   JOIN warung_mitra wm ON t.id_warung_mitra = wm.id 
                   JOIN rumah_tangga r ON t.id_rumah_tangga = r.id 
-                  WHERE t.id_warung_mitra = '$id_warung'
-                  ORDER BY t.tanggal DESC";
-$result_riwayat = mysqli_query($conn, $query_riwayat);
+                  WHERE t.id_warung_mitra = '$id_warung'";
 
+if (!empty($search_query)) {
+    $escaped_search_query = mysqli_real_escape_string($conn, $search_query);
+    $query_riwayat .= " AND r.nama LIKE '%$escaped_search_query%'";
+}
+
+$query_riwayat .= " ORDER BY t.tanggal DESC";
+$result_riwayat = mysqli_query($conn, $query_riwayat);
 
 
 // Cek apakah tombol hapus riwayat pembayaran yang gagal diklik
@@ -147,8 +157,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_riwayat_id'])) 
     <!-- Riwayat Pembayaran Section -->
     <div class="container mt-5">
         <h2>Riwayat Pembayaran</h2>
-        <a href="page.php?mod=search-war" class="btn btn-warning mt-3">Cari Riwayat Pembayaran</a>
-        <hr>
+        <a href="page.php?mod=riwayat-warung" class="btn btn-success mt-3">Kembali</a>
+        <!-- Form Pencarian -->
+        <form onsubmit="redirectToSearch(event)" class="mb-4">
+            <div class="form-group row">
+                <label for="search" class="col-sm-2 col-form-label">Cari Nama Pembayar:</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" id="search" name="search"
+                        placeholder="Masukkan Nama Rumah Tangga" value="<?= htmlspecialchars($search_query) ?>">
+                </div>
+                <div class="col-sm-2">
+                    <button type="button" onclick="redirectToSearch(event)" class="btn btn-primary">Cari</button>
+                </div>
+            </div>
+        </form>
+        <script>
+            function redirectToSearch(event) {
+                event.preventDefault();
+                const query = document.getElementById("search").value;
+                if (query) {
+                    window.location.href = `page.php?mod=search-war&search=${encodeURIComponent(query)}`;
+                }
+            }
+        </script>
         <?php if (mysqli_num_rows($result_riwayat) > 0): ?>
             <?php while ($riwayat = mysqli_fetch_assoc($result_riwayat)): ?>
                 <?php if ($riwayat['status'] == 'gagal'): ?>

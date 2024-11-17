@@ -211,7 +211,7 @@ scrollbar-width: thin; Menjadikan scrollbar lebih tipis; */
     <!-- Header -->
     <?php include 'assets/components/header.php'; ?>
 
-    <div class="container">
+    <div class="container mt-5">
         <h1 class="text-center">Dashboard <?= $nama ?></h1>
         <div class="card p-4">
             <h3>Saldo: Rp. <?= number_format($current_saldo, 2, ',', '.') ?></h3>
@@ -219,156 +219,101 @@ scrollbar-width: thin; Menjadikan scrollbar lebih tipis; */
         </div>
 
         <!-- Sampah Siap Pick-Up -->
+        <div class="container mt-5">
+        <!-- Order Sampah -->
         <div class="card p-4">
             <h4>Order Sampah</h4>
             <?php if (mysqli_num_rows($result_sampah) > 0): ?>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Jenis Sampah</th>
-                            <th>Berat (kg)</th>
-                            <th>Total Harga (Rp)</th>
-                            <th>Status</th>
-                            <th>Pembayaran & Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        mysqli_data_seek($result_sampah, 0);
-                        while ($sampah = mysqli_fetch_assoc($result_sampah)): ?>
-                            <tr>
-                                <td><?= $sampah['nama_jenis'] ?></td>
-                                <td><?= number_format($sampah['berat'], 2, ',', '.') ?></td>
-                                <td><?= number_format($sampah['total_harga'], 2, ',', '.') ?></td>
-                                <td><?= $sampah['status'] ?></td>
-                                <td>
-                                    <div class="d-flex flex-column">
-                                        <span><strong>Pembayaran:</strong>
-                                            <?= $sampah['confirmed_by_rumah_tangga'] ?? 'Belum Dikonfirmasi' ?></span>
-                                        <div class="mt-2">
-                                            <button class="btn btn-danger btn-sm"
-                                                onclick="confirmDelete(<?= $sampah['id'] ?>)">Hapus</button>
-
-                                            <!-- Tombol untuk membuka modal pembayaran -->
-                                            <button class="btn btn-success btn-sm mt-2"
-                                                onclick="openPaymentModal('<?= $sampah['nama_jenis'] ?>', '<?= $sampah['berat'] ?>', '<?= $sampah['total_harga'] ?>', '<?= $sampah['id'] ?>')"
-                                                <?= ($sampah['confirmed_by_pengelola'] == 'belum diterima') ? 'disabled' : '' ?>>
-                                                Setuju Nilai Transaksi
-                                            </button>
-                                        </div>
+                <div class="row gy-4">
+                    <?php 
+                    mysqli_data_seek($result_sampah, 0);
+                    while ($sampah = mysqli_fetch_assoc($result_sampah)): ?>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Jenis: <?= htmlspecialchars($sampah['nama_jenis']) ?></h5>
+                                    <p class="card-text">
+                                        <strong>Berat:</strong> <?= number_format($sampah['berat'], 2, ',', '.') ?> kg<br>
+                                        <strong>Total Harga:</strong> Rp<?= number_format($sampah['total_harga'], 2, ',', '.') ?><br>
+                                        <strong>Status:</strong> <?= htmlspecialchars($sampah['status']) ?><br>
+                                        <strong>Pembayaran:</strong> <?= htmlspecialchars($sampah['confirmed_by_rumah_tangga'] ?? 'Belum Dikonfirmasi') ?>
+                                    </p>
+                                    <div class="d-flex flex-column mt-3">
+                                        <button class="btn btn-danger btn-sm mb-2"
+                                            onclick="confirmDelete(<?= $sampah['id'] ?>)">
+                                            Hapus
+                                        </button>
+                                        <button class="btn btn-success btn-sm"
+                                            onclick="openPaymentModal('<?= $sampah['nama_jenis'] ?>', '<?= $sampah['berat'] ?>', '<?= $sampah['total_harga'] ?>', '<?= $sampah['id'] ?>')"
+                                            <?= ($sampah['confirmed_by_pengelola'] == 'belum diterima') ? 'disabled' : '' ?>>
+                                            Setuju Nilai Transaksi
+                                        </button>
                                     </div>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
             <?php else: ?>
-                <div class="no-data">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>Tidak ada data order sampah </p>
+                <div class="text-center text-muted mt-4">
+                    <i class="fas fa-exclamation-circle fa-2x"></i>
+                    <p class="mt-2">Tidak ada data order sampah.</p>
                 </div>
             <?php endif; ?>
-            <a href="page.php?mod=jual" class="btn btn-primary mt-4">Jual Sampah</a>
+            <div class="text-center mt-4">
+                <a href="page.php?mod=jual" class="btn btn-primary">Jual Sampah</a>
+            </div>
         </div>
+    </div>
 
 
-        <!-- History Transaksi Sampah -->
-        <div class="card p-4">
+    <!-- History Transaksi Sampah -->
+    <div class="card p-4">
             <h4>History Transaksi Sampah</h4>
+            <div class="mt-4 text-end">
+                    <h5><strong>Total Penjualan (Rp):</strong> Rp<?= number_format($total_history, 2, ',', '.') ?></h5>
+            </div>
             <?php if (mysqli_num_rows($result_history) > 0): ?>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Jenis Sampah</th>
-                            <th>Berat (kg)</th>
-                            <th>Total Harga (Rp)</th>
-                            <th>Status</th>
-                            <th>Tanggal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        mysqli_data_seek($result_history, 0);
-                        while ($history = mysqli_fetch_assoc($result_history)): ?>
-                            <tr>
-                                <td><?= $history['nama_jenis'] ?></td>
-                                <td><?= number_format($history['berat'], 2, ',', '.') ?></td>
-                                <td><?= number_format($history['total_harga'], 2, ',', '.') ?></td>
-                                <td><?= $history['status'] ?></td>
-                                <td><?= $history['created_at'] ?></td>
-                            </tr>
-                        <?php endwhile; ?>
-                        <tr>
-                            <td colspan="2" class="text-end"><strong>Total Penjualan (Rp):</strong></td>
-                            <td><strong><?= number_format($total_history, 2, ',', '.') ?></strong></td>
-                            <td colspan="2"></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="row gy-4">
+                    <?php 
+                    mysqli_data_seek($result_history, 0); // Kembali ke awal hasil query
+                    while ($history = mysqli_fetch_assoc($result_history)): ?>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Jenis: <?= htmlspecialchars($history['nama_jenis']) ?></h5>
+                                    <p class="card-text">
+                                        <strong>Berat:</strong> <?= number_format($history['berat'], 2, ',', '.') ?> kg<br>
+                                        <strong>Total Harga:</strong> Rp<?= number_format($history['total_harga'], 2, ',', '.') ?><br>
+                                        <strong>Status:</strong> <?= htmlspecialchars($history['status']) ?><br>
+                                        <strong>Tanggal:</strong> <?= htmlspecialchars($history['created_at']) ?>
+                                    </p>
+                                </div>
+                                <?php if ($history['status'] === 'gagal'): ?>
+                                    <div class="card-footer text-danger">
+                                        Transaksi Gagal
+                                    </div>
+                                <?php else: ?>
+                                    <div class="card-footer text-success">
+                                        Transaksi Selesai
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+
             <?php else: ?>
-                <div class="no-data">
-                    <i class="fas fa-history"></i>
-                    <p>Tidak ada history transaksi.</p>
+                <div class="text-center text-muted mt-4">
+                    <i class="fas fa-history fa-2x"></i>
+                    <p class="mt-2">Tidak ada history transaksi.</p>
                 </div>
             <?php endif; ?>
         </div>
+    </div>
 
 
-        <!-- Riwayat Pembayaran -->
-        <div class="card p-4">
-            <h4>Riwayat Pembayaran</h4>
-            <?php 
-            $adaPembayaranGagal = false;
-
-            // Loop pertama untuk cek status "gagal" tanpa menampilkan data
-            mysqli_data_seek($result_riwayat, 0); // Kembali ke awal hasil query
-            while ($riwayat = mysqli_fetch_assoc($result_riwayat)) {
-                if ($riwayat['status'] === 'gagal') {
-                    $adaPembayaranGagal = true;
-                    break;
-                }
-            }
-            ?>
-
-            <?php if ($adaPembayaranGagal): ?>
-                <h5 style="color: red;">Pembayaran yang berstatus gagal dikarenakan kurangnya pembayaran pada saat transaksi di warung terkait</h5>
-                <h5 style="color: red;">Harap hubungi warung terkait untuk menyelesaikan pembayaran</h5>
-            <?php endif; ?>
-
-            <?php if (mysqli_num_rows($result_riwayat) > 0): ?>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Nama Warung</th>
-                            <th>Jumlah Pembayaran (Rp)</th>
-                            <th>Status</th>
-                            <th>Keterangan</th>
-                            <th>Tanggal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php 
-                        // Loop kedua untuk menampilkan data tabel
-                        mysqli_data_seek($result_riwayat, 0); // Kembali ke awal hasil query
-                        while ($riwayat = mysqli_fetch_assoc($result_riwayat)): 
-                        ?>
-                            <tr>
-                                <td><?= $riwayat['nama_warung'] ?></td>
-                                <td><?= number_format($riwayat['jumlah_pembayaran'], 2, ',', '.') ?></td>
-                                <td><?= $riwayat['status'] ?></td>
-                                <td><?= $riwayat['keterangan'] ?></td>
-                                <td><?= $riwayat['tanggal'] ?></td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <div class="no-data">
-                    <i class="fas fa-receipt"></i>
-                    <p>Tidak ada riwayat pembayaran.</p>
-                </div>
-            <?php endif; ?>
-        </div>
+ 
 
     <!-- Modal Delete Confirmation -->
     <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="modalDeleteLabel"

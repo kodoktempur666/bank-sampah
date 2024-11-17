@@ -143,7 +143,7 @@
         <!-- Navigation Menu -->
         <ul class="navbar-nav" id="navbarNav">
             <li class="nav-item">
-                <a href="page.php?mod=search" class="nav-link"><i class="fas fa-search"></i> Cari</a>
+                <a href="page.php?mod=search" class="nav-link"><i class="fas fa-search"></i> Cari Penjualan</a>
             </li>
             <li class="nav-item">
                 <a href="page.php?mod=pengelola" class="nav-link"><i class="fas fa-home"></i> Daftar Penjualan</a>
