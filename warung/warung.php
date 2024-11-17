@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_riwayat_id'])) 
     mysqli_query($conn, $query_hapus_riwayat);
 
     // Redirect atau tampilkan pesan sukses
-    echo "<script>alert('Riwayat pembayaran gagal berhasil dihapus.'); window.location.href='page.php?mod=warung';</script>";
+    header("Location: page.php?mod=warung");
 }
 
 
@@ -134,6 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 window.location.href = 'page.php?mod=warung';
             });
         </script>";
+        header("Location: page.php?mod=warung");
 
             ;
         } catch (Exception $e) {
@@ -141,6 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_rollback($conn);
             echo "Terjadi kesalahan: " . $e->getMessage();
             echo "<script>alert('Terjadi kesalahan: '); window.location.href='page.php?mod=warung';</script>";
+            header("Location: page.php?mod=warung");
             $e->getMessage();
         }
     } else {
@@ -165,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             window.location.href = 'page.php?mod=warung';
         });
     </script>";
+    header("Location: page.php?mod=warung");
 
 
     }
@@ -185,6 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             window.location.href = 'page.php?mod=warung';
         });
     </script>";
+    header("Location: page.php?mod=warung");
 
 
     }
@@ -315,11 +319,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button type="button" class="btn btn-warning btn-sm btn-spacing"
                                 onclick="confirmTolak('<?= $pending['id'] ?>')">Tolak</button>
                             </form>
-                            <form method="POST" id="form-hapus-<?= $pending['id'] ?>" onsubmit="return confirmDelete(this)">
-                                <input type="hidden" name="hapus_id" value="<?= $pending['id'] ?>">
-                                <button type="button" class="btn btn-danger btn-sm btn-spacing"
-                                onclick="confirmHapus('<?= $pending['id'] ?>')">Hapus</button>
-                            </form>
 
                         </div>
 
@@ -411,46 +410,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <footer>
         <p>&copy; 2024 Warung Mitra. All rights reserved.</p>
     </footer>
-
-    <script>
-        function confirmHapus(id) {
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "Data yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-            return false; // Mencegah form dikirim langsung
-        }
-    </script>
-
-    <script>
-        function confirmDelete(form) {
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "Data yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-            return false; // Mencegah form dikirim langsung
-        }
-    </script>
     <script>
     function confirmTerima(id) {
         Swal.fire({
