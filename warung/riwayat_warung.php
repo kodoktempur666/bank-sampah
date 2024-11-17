@@ -7,12 +7,12 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-// // Periksa apakah pengguna adalah pengelola
-// if ($_SESSION['user']['role'] !== 'warung_mitra') {
-//     // Jika bukan pengelola, redirect ke halaman unauthorized
-//     header("Location: page.php?mod=unaut2");
-//     exit();
-// }
+// Periksa apakah pengguna adalah pengelola
+if ($_SESSION['user']['role'] !== 'warung_mitra') {
+    // Jika bukan pengelola, redirect ke halaman unauthorized
+    header("Location: page.php?mod=unaut2");
+    exit();
+}
 
 $id_warung = $_SESSION['user']['id'];
 

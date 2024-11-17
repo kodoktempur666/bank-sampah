@@ -2,12 +2,18 @@
 session_start();
 require 'config/connect.php';
 
-// Periksa apakah pengguna sudah login dan memiliki hak sebagai pengelola
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'pengelola') {
+// Cek apakah pengelola sudah login
+if (!isset($_SESSION['user'])) {
     header("Location: page.php?mod=home");
     exit();
 }
 
+// Periksa apakah pengguna adalah pengelola
+if ($_SESSION['user']['role'] !== 'pengelola') {
+    // Jika bukan pengelola, redirect ke halaman unauthorized
+    header("Location: page.php?mod=unaut2");
+    exit();
+}
 $id_pengelola = $_SESSION['user']['id'];
 
 // Ambil semua pengguna rumah tangga
@@ -135,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_verify'])) {
                     <form method="POST">
                         <input type="hidden" name="id_user" id="deleteUserId" value="">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" name="delete_user" class="btn btn-danger">Hapus</button>
+                        <button type="submit" name="confirm_delete" class="btn btn-danger">Hapus</button>
                     </form>
                 </div>
             </div>
@@ -160,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_verify'])) {
                     <form method="POST">
                         <input type="hidden" name="id_user" id="verifyUserId" value="">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" name="verify_user" class="btn btn-success">Verifikasi</button>
+                        <button type="submit" name="confirm_verify" class="btn btn-success">Verifikasi</button>
                     </form>
                 </div>
             </div>

@@ -3,16 +3,16 @@ session_start();
 require 'config/connect.php';
 
 // Cek apakah pengelola sudah login
-// if (!isset($_SESSION['user'])) {
-//     header("Location: page.php?mod=home");
-//     exit();
-// }
+if (!isset($_SESSION['user'])) {
+    header("Location: page.php?mod=home");
+    exit();
+}
 
-// // Periksa apakah pengguna adalah pengelola
-// if ($_SESSION['user']['role'] !== 'pengelola') {
-//     header("Location: page.php?mod=unaut2");
-//     exit();
-// }
+// Periksa apakah pengguna adalah pengelola
+if ($_SESSION['user']['role'] !== 'pengelola') {
+    header("Location: page.php?mod=unaut2");
+    exit();
+}
 
 $id_pengelola = $_SESSION['user']['id'];
 

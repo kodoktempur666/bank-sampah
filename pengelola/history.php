@@ -3,16 +3,16 @@ session_start();
 require 'config/connect.php';
 
 // Check if user is logged in
-// if (!isset($_SESSION['user'])) {
-//     header("Location: page.php?mod=home");
-//     exit();
-// }
+if (!isset($_SESSION['user'])) {
+    header("Location: page.php?mod=home");
+    exit();
+}
 
-// // Verify if the user is an admin (pengelola)
-// if ($_SESSION['user']['role'] !== 'pengelola') {
-//     header("Location: page.php?mod=unaut2");
-//     exit();
-// }
+// Verify if the user is an admin (pengelola)
+if ($_SESSION['user']['role'] !== 'pengelola') {
+    header("Location: page.php?mod=unaut2");
+    exit();
+}
 
 $id_pengelola = $_SESSION['user']['id'];
 

@@ -2,17 +2,17 @@
 session_start();
 require 'config/connect.php';
 
-// if (!isset($_SESSION['user'])) {
-//     header("Location: page.php?mod=home");
-//     exit();
-// }
+if (!isset($_SESSION['user'])) {
+    header("Location: page.php?mod=home");
+    exit();
+}
 
-// // Periksa apakah pengguna adalah pengelola
-// if ($_SESSION['user']['role'] !== 'rumah_tangga') {
-//     // Jika bukan pengelola, redirect ke halaman unauthorized
-//     header("Location: page.php?mod=unaut2");
-//     exit();
-// }
+// Periksa apakah pengguna adalah pengelola
+if ($_SESSION['user']['role'] !== 'rumah_tangga') {
+    // Jika bukan pengelola, redirect ke halaman unauthorized
+    header("Location: page.php?mod=unaut2");
+    exit();
+}
 
 $id_rumah_tangga = $_SESSION['user']['id'];
 
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pembayaran</title>
+    <title>Pembayaran Belanja</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header text-center">
-                        <h2>Pembayaran</h2>
+                        <h2>Pembayaran Belanja</h2>
                         <h3>Saldo Anda saat ini: Rp. <?= number_format($current_saldo, 2, ',', '.') ?></h3>
                     </div>
 
